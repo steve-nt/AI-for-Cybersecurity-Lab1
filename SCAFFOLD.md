@@ -1,8 +1,8 @@
-# SCAFFOLD.md — The Blueprint
+# SCAFFOLD.md - The Blueprint
 
 This file describes **what the project looks like** and contains **every line of code you need**.
 
-It is a reference. It does not tell you what order to do things in — that is [GUIDE.md](GUIDE.md).
+It is a reference. It does not tell you what order to do things in - that is [GUIDE.md](GUIDE.md).
 Read GUIDE.md first; come back here to copy code.
 
 ---
@@ -96,7 +96,7 @@ Each script reads a file, does one job, and writes a file. The next script picks
 
 **The important rule this enforces:** `prepare.py` splits the data into train / validation / test
 *once*, and saves it. Every later script loads that same split. This is how you guarantee you never
-accidentally train on your test data — which is the single fastest way to fail this lab.
+accidentally train on your test data - which is the single fastest way to fail this lab.
 
 ---
 
@@ -315,7 +315,7 @@ def print_row(row):
 
 ---
 
-### 4.5 `src/explore.py` — Lab Step 1: Load and look
+### 4.5 `src/explore.py` - Lab Step 1: Load and look
 
 ```python
 """LAB STEP 1: Load the data and look at it.
@@ -397,7 +397,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.6 `src/clean.py` — Lab Step 2: Clean
+### 4.6 `src/clean.py` - Lab Step 2: Clean
 
 ```python
 """LAB STEP 2: Clean the data.
@@ -491,7 +491,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.7 `src/prepare.py` — Lab Steps 3 + 4: Split and scale
+### 4.7 `src/prepare.py` - Lab Steps 3 + 4: Split and scale
 
 ```python
 """LAB STEPS 3 AND 4: Split into train/validation/test, then scale.
@@ -585,7 +585,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.8 `src/train_binary.py` — Lab Steps 5 + 6: The models
+### 4.8 `src/train_binary.py` - Lab Steps 5 + 6: The models
 
 ```python
 """LAB STEPS 5 AND 6: Train the classical models and the neural network.
@@ -716,7 +716,7 @@ top, which makes it reachable as `metrics.f1_score`.
 
 ---
 
-### 4.9 `src/ablation.py` — Lab Step 7: Change one thing
+### 4.9 `src/ablation.py` - Lab Step 7: Change one thing
 
 ```python
 """LAB STEP 7: The ablation.
@@ -788,7 +788,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.10 `src/multiclass.py` — Naming the attack
+### 4.10 `src/multiclass.py` - Naming the attack
 
 ```python
 """THE MULTICLASS TASK: not just "is it an attack" but "WHICH attack".
@@ -849,7 +849,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.11 `src/compare.py` — Lab Step 8: The final table
+### 4.11 `src/compare.py` - Lab Step 8: The final table
 
 ```python
 """LAB STEP 8: Put everything in one table and one chart.
@@ -911,7 +911,7 @@ if __name__ == "__main__":
 
 ---
 
-### 4.12 `run_all.py` — the whole pipeline in one command
+### 4.12 `run_all.py` - the whole pipeline in one command
 
 The rubric asks that your code "runs start-to-finish and reproduces your numbers". This is that.
 
@@ -958,7 +958,7 @@ scaffold, with the reasoning:
 | Dropped `Protocol` and `Destination Port` too | Debatable, and worth a sentence in your report. Port 80 vs 22 is genuinely informative, but in a lab dataset the attack traffic sits on fixed ports, so the model can shortcut. We drop them to be safe. |
 | Fitted the scaler on training data only | Fitting on everything leaks information about the test set into training. |
 | Stratified on the multiclass label, not binary | Keeps rare attack *types* proportionally present in all three splits. |
-| Dropped classes with < 10 rows | Cannot be split three ways or learned from. Say so in the report — it is a limitation, not a secret. |
+| Dropped classes with < 10 rows | Cannot be split three ways or learned from. Say so in the report - it is a limitation, not a secret. |
 | Chose the winner on validation, scored once on test | This is what "no test-set peeking" means, and it is 25% of your grade. |
 | Used `MLPClassifier` as the neural network | Explicitly permitted by the lab brief, no extra install, works on Python 3.13. |
 | Judged by macro-F1 and FAR, not accuracy | The data is ~80% normal traffic, so a model that says "normal" every single time scores ~80% accuracy while catching zero attacks. |
@@ -970,15 +970,15 @@ scaffold, with the reasoning:
 After `python run_all.py` finishes:
 
 **Tables** (`results/tables/`)
-- `binary_results.csv` — the main comparison
-- `ablation_results.csv` — the scaling on/off experiment
-- `final_comparison.csv` — everything merged, ready for the report
+- `binary_results.csv` - the main comparison
+- `ablation_results.csv` - the scaling on/off experiment
+- `final_comparison.csv` - everything merged, ready for the report
 
 **Figures** (`results/figures/`)
-- `class_balance.png` — Lab Step 1's required bar chart
+- `class_balance.png` - Lab Step 1's required bar chart
 - `confusion_LogisticRegression.png`, `confusion_RandomForest.png`, `confusion_MLP.png`
-- `confusion_multiclass.png` — which attacks get confused with which
-- `model_comparison.png` — macro-F1 and FAR side by side
+- `confusion_multiclass.png` - which attacks get confused with which
+- `model_comparison.png` - macro-F1 and FAR side by side
 
 Pick **one table and one or two figures** for the report, and make sure you actually refer to each
 one in the text. The rubric specifically rewards captions that the writing uses.

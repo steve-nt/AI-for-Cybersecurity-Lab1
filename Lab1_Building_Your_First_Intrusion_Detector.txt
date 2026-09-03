@@ -9,8 +9,8 @@ That is exactly what you will build in this lab.
 
 You will do this in two forms: 
 
-• Binary detection — for each connection, answer a yes/no question: is this normal or an attack? 
-• Multiclass detection — go further and name which kind of attack it is (scan, denial-of-service, 
+• Binary detection - for each connection, answer a yes/no question: is this normal or an attack? 
+• Multiclass detection - go further and name which kind of attack it is (scan, denial-of-service, 
 etc.). 
 
 
@@ -165,7 +165,7 @@ it. Include the random seed.
 
 A short report (2–3 pages). Suggested sections: 
 
-• What the problem is (IDS, binary vs. multiclass) — a short paragraph. 
+• What the problem is (IDS, binary vs. multiclass) - a short paragraph. 
 • What you did (cleaning, split, which models, which settings). 
 • Results (one clear table + one or two figures, each with a caption you actually refer to). 
 • Discussion (which model wins, what FAR tells you). 
@@ -240,7 +240,7 @@ mysteriously bad).
 
 Where to read more 
 
-scikit-learn documentation — “Supervised learning” and “Model evaluation” user guides. 
+scikit-learn documentation - “Supervised learning” and “Model evaluation” user guides. 
 
 • Sharafaldin, I., Habibi Lashkari, A., & Ghorbani, A. A. (2018, January). A detailed analysis of the 
 cicids2017 data set. In International conference on information systems security and privacy (pp. 

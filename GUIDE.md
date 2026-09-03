@@ -1,4 +1,4 @@
-# GUIDE.md — Do These Things, In This Order
+# GUIDE.md - Do These Things, In This Order
 
 This guide assumes you have **never written Python**, have **never studied cybersecurity**, and
 have **never used a terminal**. Nothing is skipped.
@@ -13,12 +13,12 @@ it and *what it does*.
 
 ---
 
-# Part 0 — What am I even building?
+# Part 0 - What am I even building?
 
 ## 0.1 The security problem
 
 Every time a computer talks to another computer, that conversation is a **connection** (also called
-a *flow*). A busy company network has millions a day. Almost all are ordinary — someone loading a
+a *flow*). A busy company network has millions a day. Almost all are ordinary - someone loading a
 webpage, an email arriving. A few are an attacker: scanning for a way in, flooding a server so it
 falls over, guessing passwords over and over.
 
@@ -53,12 +53,12 @@ That program catches **zero attacks.** It is completely worthless.
 
 This is why the lab bans you from reporting accuracy on its own. You will report five numbers, and
 the two that actually matter are **macro-F1** and **FAR**. Part 5 of this guide explains them in
-detail. If you understand nothing else, understand this paragraph — it is the point of the whole
+detail. If you understand nothing else, understand this paragraph - it is the point of the whole
 lab, and the report marks hang on it.
 
 ---
 
-# Part 1 — Set up your computer
+# Part 1 - Set up your computer
 
 ## 1.1 Opening a terminal
 
@@ -72,8 +72,8 @@ Some words you will see:
 | **directory** | exactly the same thing as a folder |
 | **command** | a line you type, then press Enter |
 | `sudo` | "do this as administrator". It will ask for your login password. |
-| `cd` | change directory — move into a folder |
-| `ls` | list — show what is in the current folder |
+| `cd` | change directory - move into a folder |
+| `ls` | list - show what is in the current folder |
 
 When you type your password after `sudo`, **nothing appears on screen.** No dots, no stars. That is
 normal and deliberate. Type it and press Enter.
@@ -169,15 +169,15 @@ pip install -r requirements.txt
 This downloads about 100 MB and takes 1–3 minutes.
 
 > **What are these?**
-> - **pandas** — spreadsheets for Python. Loads your CSV and lets you filter and clean it.
-> - **numpy** — fast maths on big grids of numbers. pandas is built on it.
-> - **scikit-learn** — the machine learning library. All your models and scores come from here.
-> - **matplotlib** — draws the charts.
-> - **joblib** — saves trained models and data splits to disk.
-> - **tabulate** — formats the final results table nicely.
+> - **pandas** - spreadsheets for Python. Loads your CSV and lets you filter and clean it.
+> - **numpy** - fast maths on big grids of numbers. pandas is built on it.
+> - **scikit-learn** - the machine learning library. All your models and scores come from here.
+> - **matplotlib** - draws the charts.
+> - **joblib** - saves trained models and data splits to disk.
+> - **tabulate** - formats the final results table nicely.
 >
 > The version numbers are pinned so your results are reproducible. That is worth a line in your
-> README — the rubric asks for it.
+> README - the rubric asks for it.
 
 ## 1.7 Check it worked
 
@@ -187,13 +187,13 @@ python -c "import pandas, sklearn, matplotlib; print('All libraries OK')"
 
 **You should see:** `All libraries OK`
 
-If you see `ModuleNotFoundError`, go back to 1.5 — you are not in the venv.
+If you see `ModuleNotFoundError`, go back to 1.5 - you are not in the venv.
 
 **Part 1 is done.**
 
 ---
 
-# Part 2 — Build the project skeleton
+# Part 2 - Build the project skeleton
 
 ## 2.1 Create the folders
 
@@ -226,7 +226,7 @@ EOF
 ```
 
 > Datasets are hundreds of megabytes. This tells git to ignore them so you never accidentally try
-> to upload them. Your *code* still gets tracked — that is what you submit.
+> to upload them. Your *code* still gets tracked - that is what you submit.
 
 ## 2.3 Create the code files
 
@@ -241,7 +241,7 @@ gedit src/config.py
 
 That opens a blank window. Paste the code from SCAFFOLD.md section 4.3, save (`Ctrl+S`), close.
 
-If `gedit` is not installed, use `nano src/config.py` instead — paste, then `Ctrl+O`, `Enter`,
+If `gedit` is not installed, use `nano src/config.py` instead - paste, then `Ctrl+O`, `Enter`,
 `Ctrl+X` to save and exit. Or use VS Code if you have it: `code .` opens the whole folder.
 
 Create these, in this order:
@@ -272,13 +272,13 @@ ls src/
 
 ---
 
-# Part 3 — Get the data
+# Part 3 - Get the data
 
 ## 3.1 Download it
 
 Go to: **https://www.unb.ca/cic/datasets/ids-2017.html**
 
-Scroll to the download section and fill in the short form (name, email, organisation — it is free
+Scroll to the download section and fill in the short form (name, email, organisation - it is free
 and instant). You are looking for the **`MachineLearningCSV.zip`** download, which contains eight
 CSV files of already-processed connection records.
 
@@ -288,7 +288,7 @@ the same `MachineLearningCVE` folder. Any mirror of those eight CSVs works.
 > **What is this dataset?** In 2017, the Canadian Institute for Cybersecurity built a realistic
 > office network, ran normal user activity on it for five days, and at scheduled times launched
 > real attacks against it. They recorded everything, then converted the raw traffic into these
-> tables — one row per connection, ~78 measured columns, plus the true label. It is one of the
+> tables - one row per connection, ~78 measured columns, plus the true label. It is one of the
 > standard datasets for IDS research, and the paper describing it is cited in your lab PDF.
 
 ## 3.2 Pick ONE file
@@ -299,11 +299,11 @@ You do not need all eight. Unzip and pick one:
 |---|---|---|
 | **`Wednesday-workingHours.pcap_ISCX.csv`** | Several denial-of-service attacks + normal traffic | **Recommended.** Good size, several attack types, sensible balance. |
 | `Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv` | Port scanning + normal | Also fine, close to 50/50 |
-| `Monday-WorkingHours.pcap_ISCX.csv` | Normal traffic only | **Do not use** — no attacks at all, nothing to learn |
+| `Monday-WorkingHours.pcap_ISCX.csv` | Normal traffic only | **Do not use** - no attacks at all, nothing to learn |
 
 > **Why only one day?** Your lab PDF says so directly: *"Datasets are big. For a first run, load one
 > day's file (or a random 10–20% sample)."* One day is roughly 700,000 rows. On top of that, our
-> `config.py` takes a 20% sample of it, giving ~140,000 rows — plenty to learn from, and it trains
+> `config.py` takes a 20% sample of it, giving ~140,000 rows - plenty to learn from, and it trains
 > in minutes rather than hours. You can raise `SAMPLE_FRACTION` to `1.0` later for a final run.
 
 ## 3.3 Put it in place
@@ -320,7 +320,7 @@ mv ~/Downloads/Wednesday-workingHours.pcap_ISCX.csv data/raw/
 ls data/raw/
 ```
 
-Whatever that prints must **exactly** match the `RAW_FILE` line in `src/config.py`. Exactly —
+Whatever that prints must **exactly** match the `RAW_FILE` line in `src/config.py`. Exactly -
 capital letters, hyphens, dots, everything.
 
 If it differs, edit `src/config.py` and fix this line:
@@ -331,12 +331,12 @@ RAW_FILE = DATA_RAW / "Wednesday-workingHours.pcap_ISCX.csv"
 
 ---
 
-# Part 4 — Run it, one step at a time
+# Part 4 - Run it, one step at a time
 
-Run each script on its own and read what it prints. Do not skip to `run_all.py` yet — when
+Run each script on its own and read what it prints. Do not skip to `run_all.py` yet - when
 something goes wrong, you want to know exactly which step broke.
 
-## Step 1 — Load and look
+## Step 1 - Load and look
 
 ```bash
 python src/explore.py
@@ -361,38 +361,38 @@ xdg-open results/figures/class_balance.png
 
 **This is the bar chart the lab requires in Step 1.** Keep it for the report.
 
-> **What to notice:** the bars are wildly different heights — that is the class imbalance from
+> **What to notice:** the bars are wildly different heights - that is the class imbalance from
 > section 0.3 made visible. The chart uses a logarithmic scale, otherwise the small attack classes
 > would be invisible flat lines next to the huge BENIGN bar.
 
-## Step 2 — Clean
+## Step 2 - Clean
 
 ```bash
 python src/clean.py
 ```
 
 **You should see** six numbered lines reporting what was removed. Read them. They are the raw
-material for the "what you did" section of your report — write the numbers down.
+material for the "what you did" section of your report - write the numbers down.
 
 > **What just happened, and why each part matters:**
 >
 > 1. **Dropped ID columns.** IP addresses, timestamps, Flow ID. These are name tags. They tell you
 >    *who* and *when*, not *what an attack looks like*. Leave them in and the model memorises
->    "traffic from 192.168.10.50 is bad" — it scores brilliantly on your test set and is useless on
+>    "traffic from 192.168.10.50 is bad" - it scores brilliantly on your test set and is useless on
 >    any real network. This mistake is called **data leakage** and it is the classic way to
 >    accidentally fake a great result.
 > 2. **Fixed infinity and blanks.** Some columns are "bytes ÷ duration". When duration is zero the
 >    answer is infinity, which crashes every model.
 > 3. **Dropped duplicates.** An identical row appearing twice can land once in training and once in
->    testing — so the model is tested on something it already memorised. Inflates your score
+>    testing - so the model is tested on something it already memorised. Inflates your score
 >    dishonestly.
 > 4. **Dropped dead columns** where every row has the same value. They teach nothing.
 > 5. **Dropped ultra-rare attack types** (under 10 examples). Too few to learn from, and they break
->    the split in the next step. **Mention this in your report** — it is a limitation, and naming
+>    the split in the next step. **Mention this in your report** - it is a limitation, and naming
 >    your own limitations earns marks.
 > 6. **Took a 20% sample**, keeping the same mix of attack types.
 
-## Step 3 — Split and scale
+## Step 3 - Split and scale
 
 ```bash
 python src/prepare.py
@@ -403,14 +403,14 @@ identical to each other.
 
 > **What are the three parts for?** This is the heart of honest machine learning.
 >
-> - **Training set (60%)** — the model learns from this. It sees the answers.
-> - **Validation set (20%)** — you try several settings and pick the best using this. The model
+> - **Training set (60%)** - the model learns from this. It sees the answers.
+> - **Validation set (20%)** - you try several settings and pick the best using this. The model
 >   never learns from it; you use it to make *your* choices.
-> - **Test set (20%)** — locked in a drawer until the very end. Used exactly once, to report your
+> - **Test set (20%)** - locked in a drawer until the very end. Used exactly once, to report your
 >   final numbers.
 >
 > The point of the test set is to answer "how will this do on traffic it has genuinely never
-> seen?". The moment you use it to make a decision — try a setting, look, try another — it stops
+> seen?". The moment you use it to make a decision - try a setting, look, try another - it stops
 > being unseen and your reported score becomes a lie. This is called **test-set peeking** and it is
 > 25% of your grade.
 >
@@ -427,10 +427,10 @@ identical to each other.
 >
 > **The subtle bit:** the scaler learns the average and spread from the **training data only**,
 > then applies those same numbers to validation and test. If it learned from all the data, facts
-> about the test set would leak into training. Look for the line in the output confirming this —
+> about the test set would leak into training. Look for the line in the output confirming this -
 > it is a specific thing markers check for.
 
-## Step 4 — Train the models
+## Step 4 - Train the models
 
 ```bash
 python src/train_binary.py
@@ -443,21 +443,21 @@ validation scores, a declared winner, and then one line of final test scores.
 
 > **You may see a yellow `ConvergenceWarning` about the neural network.** That is a warning, not an
 > error. It means the network hit its iteration limit before fully settling. It is fine for this
-> lab — and honestly, it is worth one sentence in your report.
+> lab - and honestly, it is worth one sentence in your report.
 
 **The three models:**
 
-- **Logistic Regression** — the simplest. Draws one straight boundary between normal and attack.
+- **Logistic Regression** - the simplest. Draws one straight boundary between normal and attack.
   Fast, easy to explain, struggles when the real boundary is not straight.
-- **Random Forest** — builds hundreds of flowchart-style decision trees, each on a random slice of
+- **Random Forest** - builds hundreds of flowchart-style decision trees, each on a random slice of
   the data, then has them vote. Usually the strongest on this kind of data and very forgiving.
-- **MLP (neural network)** — layers of simple units that each learn a small piece of the pattern,
+- **MLP (neural network)** - layers of simple units that each learn a small piece of the pattern,
   stacked so later layers combine earlier ones. This is the neural network the lab requires.
 
-The lab asks for **classical models plus one neural network** — you now have two classical and one
+The lab asks for **classical models plus one neural network** - you now have two classical and one
 neural, which covers it.
 
-## Step 5 — The ablation
+## Step 5 - The ablation
 
 ```bash
 python src/ablation.py
@@ -470,7 +470,7 @@ python src/ablation.py
 > asserting it did.
 >
 > **What to expect:** Logistic Regression and the neural network should get clearly worse without
-> scaling. Random Forest should barely move. If that is what you see — say so in the report, and
+> scaling. Random Forest should barely move. If that is what you see - say so in the report, and
 > explain *why* the forest does not care (it asks threshold questions, which are unit-independent).
 > That single sentence shows you understood the mechanism instead of just running code.
 >
@@ -480,7 +480,7 @@ python src/ablation.py
 
 **Write down the before/after numbers.** The lab explicitly requires them.
 
-## Step 6 — Multiclass
+## Step 6 - Multiclass
 
 ```bash
 python src/multiclass.py
@@ -493,24 +493,24 @@ xdg-open results/figures/confusion_multiclass.png
 ```
 
 > **How to read a confusion matrix:** rows are what the traffic *actually was*, columns are what
-> the model *guessed*. The diagonal (top-left to bottom-right) is where it got things right —
+> the model *guessed*. The diagonal (top-left to bottom-right) is where it got things right -
 > you want that dark and everything else pale. A bright square off the diagonal means "the model
 > systematically mistakes attack X for attack Y".
 >
 > Find one off-diagonal bright spot and write a sentence about it. Attacks that resemble each
 > other in their traffic patterns get confused, and that is a genuinely interesting security
-> observation — exactly the kind of thing the "Discussion" section wants.
+> observation - exactly the kind of thing the "Discussion" section wants.
 
-## Step 7 — The final table
+## Step 7 - The final table
 
 ```bash
 python src/compare.py
 ```
 
 **You should see** a formatted table printed to the terminal. **This is the table for your
-report** — copy it directly.
+report** - copy it directly.
 
-## Step 8 — Prove it runs start to finish
+## Step 8 - Prove it runs start to finish
 
 ```bash
 python run_all.py
@@ -522,7 +522,7 @@ errors.
 
 ---
 
-# Part 5 — Understanding your numbers
+# Part 5 - Understanding your numbers
 
 **Do not write the report until you have read this part.** The marks are in the interpretation, not
 the running.
@@ -533,65 +533,65 @@ Every single prediction lands in one of four boxes:
 
 |  | Model said ATTACK | Model said NORMAL |
 |---|---|---|
-| **Really was an attack** | **TP** — true positive: caught it | **FN** — false negative: **missed an attack** |
-| **Really was normal** | **FP** — false positive: **a false alarm** | **TN** — true negative: correctly ignored |
+| **Really was an attack** | **TP** - true positive: caught it | **FN** - false negative: **missed an attack** |
+| **Really was normal** | **FP** - false positive: **a false alarm** | **TN** - true negative: correctly ignored |
 
 The two dangerous boxes are the bold ones, and they hurt in different ways:
 
-- **FN (missed attack)** — the attacker gets in and nobody knows. This is the catastrophe.
-- **FP (false alarm)** — a security analyst is dragged out of bed for nothing. One is annoying;
+- **FN (missed attack)** - the attacker gets in and nobody knows. This is the catastrophe.
+- **FP (false alarm)** - a security analyst is dragged out of bed for nothing. One is annoying;
   ten thousand a day means the team switches the alarm off, and then you are back to catastrophes.
 
 Almost every choice in intrusion detection is a trade between these two.
 
 ## 5.2 The five scores
 
-### Accuracy — *"what fraction did I get right?"*
+### Accuracy - *"what fraction did I get right?"*
 `(TP + TN) / everything`
 
 **Easy to understand, and the lab bans you from relying on it.** Reread section 0.3: on 80%-normal
 data, a model that always says "normal" gets 80% accuracy and catches nothing. Report it, but never
 argue from it.
 
-### Recall (on the attack class) — *"of all the real attacks, how many did I catch?"*
+### Recall (on the attack class) - *"of all the real attacks, how many did I catch?"*
 `TP / (TP + FN)`
 
 The security question that matters most. Recall of 0.95 means you caught 95% of attacks and 5% got
 through. **Higher is better.**
 
-### Precision — *"when I shouted 'attack', how often was I right?"*
+### Precision - *"when I shouted 'attack', how often was I right?"*
 `TP / (TP + FP)`
 
 Not in your required table, but it is the other half of F1, so know it.
 
-### macro-F1 — *the balanced single number*
+### macro-F1 - *the balanced single number*
 
 F1 combines precision and recall into one score. **Macro**-F1 computes F1 separately for the normal
 class and the attack class, then averages the two **giving each equal weight**.
 
 That last part is the whole point. The lazy always-say-normal model scores brilliantly on the
-normal class and zero on the attack class — macro-F1 averages those and exposes it immediately,
+normal class and zero on the attack class - macro-F1 averages those and exposes it immediately,
 where accuracy hid it.
 
 **This is your headline number.** **Higher is better**, 1.0 is perfect.
 
-### ROC-AUC — *"how well does it rank?"*
+### ROC-AUC - *"how well does it rank?"*
 
 Models do not really output yes/no; they output a confidence, and we cut at 0.5. ROC-AUC asks: if I
 pick one random attack and one random normal connection, how often does the model rate the attack
 as more suspicious? **1.0 is perfect, 0.5 is coin-flipping.** Useful because it judges the model
 independently of where you put the cutoff.
 
-### FAR — False Alarm Rate — *"how much did I cry wolf?"*
+### FAR - False Alarm Rate - *"how much did I cry wolf?"*
 `FP / (FP + TN)`
 
 Of all the genuinely normal traffic, what fraction did you wrongly flag?
 
-**LOWER is better** — this is the one score in the table where that is true, so do not mix it up.
+**LOWER is better** - this is the one score in the table where that is true, so do not mix it up.
 
 **Why it matters so much in security:** a network carrying a million normal connections a day with
 a 5% FAR produces **50,000 false alarms every day**. No team can read that. The alarm gets ignored
-or disabled, and the detector is worse than useless — it created false confidence. A "great" model
+or disabled, and the detector is worse than useless - it created false confidence. A "great" model
 with a bad FAR is not deployable, and saying that clearly in your discussion is exactly what the
 report is asking for.
 
@@ -601,15 +601,15 @@ Judge on **macro-F1 and FAR together**. Argue it out loud in the report:
 
 > "Random Forest achieved the highest macro-F1 (0.98) with a FAR of 0.004, meaning only 4 in every
 > 1,000 normal connections raised a false alarm. Logistic Regression reached similar accuracy but a
-> FAR of 0.03 — nearly ten times higher — which on a network of a million daily connections would
+> FAR of 0.03 - nearly ten times higher - which on a network of a million daily connections would
 > mean 30,000 false alerts a day. We would deploy the Random Forest."
 
-That paragraph — a number, what it means in practice, and a decision — is what "with evidence"
+That paragraph - a number, what it means in practice, and a decision - is what "with evidence"
 means in the lab brief. Write yours in that shape, with your own numbers.
 
 ---
 
-# Part 6 — Write the README
+# Part 6 - Write the README
 
 The rubric wants a README explaining how to run your code, which libraries you used, and your seed.
 
@@ -662,19 +662,19 @@ Tables in results/tables/, figures in results/figures/.
 
 ---
 
-# Part 7 — Write the report
+# Part 7 - Write the report
 
 2–3 pages. Submitted as a PDF. Use the sections the lab asks for.
 
 ## 7.1 What problem is this (short paragraph)
 
 What an IDS is. Binary vs. multiclass. One sentence on why machine learning instead of hand-written
-rules. Section 0 of this guide has everything you need — write it in your own words.
+rules. Section 0 of this guide has everything you need - write it in your own words.
 
 ## 7.2 What you did
 
 - Which dataset file, and how many rows before and after cleaning (from your Step 2 output).
-- What you removed and **why** — especially the ID columns and the leakage reasoning. This is
+- What you removed and **why** - especially the ID columns and the leakage reasoning. This is
   where you show you understand it.
 - The 60/20/20 stratified split, and that the seed is 42.
 - That the scaler was fitted on training data only.
@@ -699,10 +699,10 @@ Include the **ablation before/after numbers** here too, and one line on what the
 
 The most valuable section. Cover:
 
-- **Which model wins and why** — argue from macro-F1 and FAR, in the shape shown in section 5.3.
-- **What FAR means in practice** — do the arithmetic. Multiply your FAR by a million connections.
-- **Why accuracy alone misleads here** — the always-say-normal argument from section 0.3.
-- **What the ablation proved** — and why Random Forest was unaffected.
+- **Which model wins and why** - argue from macro-F1 and FAR, in the shape shown in section 5.3.
+- **What FAR means in practice** - do the arithmetic. Multiply your FAR by a million connections.
+- **Why accuracy alone misleads here** - the always-say-normal argument from section 0.3.
+- **What the ablation proved** - and why Random Forest was unaffected.
 - **Limitations, stated honestly:** one day of one synthetic dataset; a 20% sample; rare attack
   classes dropped; a lab network is not a real one; a model trained on 2017 attacks may not
   generalise to today's. Naming your own limitations gains marks, it does not lose them.
@@ -712,7 +712,7 @@ The most valuable section. Cover:
 One or two lines. The lab is explicit that if one person does everything, it shows up in individual
 grades.
 
-## 7.6 AI disclosure — do not skip this
+## 7.6 AI disclosure - do not skip this
 
 Your lab PDF says: *"If you use an AI assistant, say so in the report."* You used one to build this
 scaffold. Write a line such as:
@@ -725,7 +725,7 @@ Being straightforward here costs you nothing. Not disclosing is an academic hone
 
 ---
 
-# Part 8 — Submit
+# Part 8 - Submit
 
 ```bash
 cd ~/Desktop
@@ -740,9 +740,9 @@ Upload to Canvas: the zip (or a repository link) **and** the report as a PDF.
 
 ---
 
-# Part 9 — When something breaks
+# Part 9 - When something breaks
 
-Errors are normal. Read the **last line** of the error message first — that is the actual problem.
+Errors are normal. Read the **last line** of the error message first - that is the actual problem.
 
 | What you see | What it means | Fix |
 |---|---|---|
@@ -750,13 +750,13 @@ Errors are normal. Read the **last line** of the error message first — that is
 | `externally-managed-environment` | Installing outside a venv | Activate the venv first (1.5) |
 | `No module named pip` | pip not installed | `sudo apt install python3-pip python3-venv` |
 | `FileNotFoundError: .../data/raw/...csv` | Filename mismatch | `ls data/raw/`, make `RAW_FILE` in `config.py` match exactly |
-| `KeyError: 'Label'` | Column name has stray spaces | The `.str.strip()` in `explore.py` handles this — check you copied it |
+| `KeyError: 'Label'` | Column name has stray spaces | The `.str.strip()` in `explore.py` handles this - check you copied it |
 | `ValueError: Input contains NaN or infinity` | Cleaning did not run | Run `python src/clean.py` before `prepare.py` |
 | `MemoryError` or the machine freezes | Too much data | Lower `SAMPLE_FRACTION` in `config.py` to `0.05` |
 | `ConvergenceWarning` | The neural net hit its iteration limit | A warning, not an error. Safe to continue; mention it in the report. |
 | `IndentationError` | Spacing got mangled when pasting | Recopy that whole code block from SCAFFOLD.md |
 | `n_splits/class cannot be less than...` | A class has too few rows | Raise `MIN_CLASS_COUNT` in `config.py` to 50 |
-| Nothing happens for minutes | Normal — training is slow | Wait. Random Forest on 140k rows takes a few minutes. |
+| Nothing happens for minutes | Normal - training is slow | Wait. Random Forest on 140k rows takes a few minutes. |
 
 **Cannot fix it?** Copy the last 10 lines of the error and ask. An error message is information,
 not failure.
@@ -775,13 +775,13 @@ Setup:
 - [ ] `RAW_FILE` in `config.py` matches the actual filename
 
 Lab steps:
-- [ ] Step 1 — explore ran, `class_balance.png` exists
-- [ ] Step 2 — clean ran, cleaning numbers written down
-- [ ] Steps 3–4 — split 60/20/20, scaler fitted on train only
-- [ ] Steps 5–6 — two classical models + one neural network trained
-- [ ] Step 7 — ablation ran, before/after numbers written down
+- [ ] Step 1 - explore ran, `class_balance.png` exists
+- [ ] Step 2 - clean ran, cleaning numbers written down
+- [ ] Steps 3–4 - split 60/20/20, scaler fitted on train only
+- [ ] Steps 5–6 - two classical models + one neural network trained
+- [ ] Step 7 - ablation ran, before/after numbers written down
 - [ ] Multiclass ran, confusion matrix inspected
-- [ ] Step 8 — final comparison table produced
+- [ ] Step 8 - final comparison table produced
 - [ ] `python run_all.py` completes with no errors
 
 Hand-in:
@@ -799,27 +799,27 @@ Hand-in:
 
 # Glossary
 
-**Ablation** — changing one thing and holding everything else fixed, to show that thing mattered.
-**Class imbalance** — one label far more common than the others. Here, ~80% normal traffic.
-**Classifier** — a model that sorts things into categories.
-**Confusion matrix** — a grid of actual vs. predicted, showing exactly what gets mistaken for what.
-**Data leakage** — information reaching the model that it would not have in real use, producing
+**Ablation** - changing one thing and holding everything else fixed, to show that thing mattered.
+**Class imbalance** - one label far more common than the others. Here, ~80% normal traffic.
+**Classifier** - a model that sorts things into categories.
+**Confusion matrix** - a grid of actual vs. predicted, showing exactly what gets mistaken for what.
+**Data leakage** - information reaching the model that it would not have in real use, producing
 fake-good scores. Keeping IP addresses is the classic example.
-**DataFrame** — a table in pandas. Rows and columns, like a spreadsheet.
-**DoS** — denial of service. Flooding a system so it cannot serve real users.
-**FAR** — false alarm rate, `FP/(FP+TN)`. Fraction of normal traffic wrongly flagged. Lower better.
-**Feature** — one measured column describing a connection.
-**Flow / connection** — one conversation between two machines. One row of your data.
-**IDS** — intrusion detection system.
-**Label** — the true answer for a row: `BENIGN` or an attack name.
-**macro-F1** — F1 computed per class then averaged with equal weight. Your headline score.
-**MLP** — multi-layer perceptron. The standard simple neural network.
-**Overfitting** — memorising the training data instead of learning the pattern. Shows up as great
+**DataFrame** - a table in pandas. Rows and columns, like a spreadsheet.
+**DoS** - denial of service. Flooding a system so it cannot serve real users.
+**FAR** - false alarm rate, `FP/(FP+TN)`. Fraction of normal traffic wrongly flagged. Lower better.
+**Feature** - one measured column describing a connection.
+**Flow / connection** - one conversation between two machines. One row of your data.
+**IDS** - intrusion detection system.
+**Label** - the true answer for a row: `BENIGN` or an attack name.
+**macro-F1** - F1 computed per class then averaged with equal weight. Your headline score.
+**MLP** - multi-layer perceptron. The standard simple neural network.
+**Overfitting** - memorising the training data instead of learning the pattern. Shows up as great
 training scores and poor test scores.
-**Port scan** — probing many ports to find an open way in. Often the first move of an attack.
-**Scaling / standardisation** — putting all columns on a comparable numeric range.
-**Seed** — a fixed number that makes randomness repeatable.
-**Stratified split** — splitting while preserving each class's proportion in every part.
-**Test set** — data held back and used exactly once, at the end.
-**Validation set** — data used to choose between settings, so the test set stays untouched.
-**venv** — virtual environment. A private Python installation for one project.
+**Port scan** - probing many ports to find an open way in. Often the first move of an attack.
+**Scaling / standardisation** - putting all columns on a comparable numeric range.
+**Seed** - a fixed number that makes randomness repeatable.
+**Stratified split** - splitting while preserving each class's proportion in every part.
+**Test set** - data held back and used exactly once, at the end.
+**Validation set** - data used to choose between settings, so the test set stays untouched.
+**venv** - virtual environment. A private Python installation for one project.
