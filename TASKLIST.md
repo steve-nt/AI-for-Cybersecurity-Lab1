@@ -31,7 +31,7 @@ changes.
 
 This is genuinely how software teams decouple work, and it is worth one sentence in your report.
 
-### Ownership map
+### Ownership map (WE DO NOT HAVE TO FOLLOW IT)
 
 | Person A - "Data & Pipeline" | Person B - "Models & Evaluation" |
 |---|---|
@@ -45,7 +45,8 @@ This is genuinely how software teams decouple work, and it is worth one sentence
 
 > **Is this fair?** B has more files, but A owns the data work - and downloading, filename
 > mismatches, encoding errors and memory problems are where the hidden hours actually go. It
-> balances out. Swap the columns if you both prefer; just decide once and stick to it.
+> balances out. Swap the columns if you both prefer; just decide once and stick to it. Or we can 
+> from column to column depending our skills
 
 ### Git rules (three of them)
 
