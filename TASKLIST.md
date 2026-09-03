@@ -4,7 +4,7 @@ For **two people**, designed so you spend as little time as possible waiting for
 
 - **[GUIDE.md](GUIDE.md)** = how to do things (explanations, commands, concepts)
 - **[SCAFFOLD.md](SCAFFOLD.md)** = the code to copy
-- **Tasklist.md** (this file) = who does which bit, and what blocks what
+- **TASKLIST.md** (this file) = who does which bit, and what blocks what
 
 ---
 
