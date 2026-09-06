@@ -52,7 +52,7 @@ The keys both sides rely on:
 | Num | Title | Owner | What To Do | Depends On |
 |---|---|---|---|---|
 | T01 | Download the dataset | Both | Register at UNB, get CICIDS2017, unzip; start this first | - |
-| T02 | Install tools and libraries | Both | apt install, venv, pip install, verify imports | - |
+| T02 | Install Python 3.11 and libraries | Both | uv, 3.11 venv, pip install, verify imports | - |
 | T03 | Create the project skeleton | A | Folders, `requirements.txt`, `.gitignore` | T02 |
 | T04 | Create `config.py` | A | Seed, paths, split sizes, ID columns to drop | T03 |
 | T05 | Put the dataset in place | Both | Move CSV to `data/raw/`, make `RAW_FILE` match exactly | T01, T04 |
@@ -107,23 +107,36 @@ Alternatives and details: GUIDE.md Part 3.
 
 ---
 
-### T02 - Install tools and libraries
+### T02 - Install Python 3.11 and libraries
 **Owner:** Both, each on their own machine · **Depends on:** -
 
 **What to do.** Follow GUIDE.md Part 1:
 
 ```bash
-sudo apt install -y python3-venv python3-pip
-python3 -m venv .venv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+uv python install 3.11
+uv venv --python 3.11 .venv
 source .venv/bin/activate
-pip install -r requirements.txt        # once T03 has created it
-python -c "import pandas, sklearn, matplotlib; print('All libraries OK')"
+uv pip install -r requirements.txt     # once T03 has created it
+python -c "import sys; print(sys.version)"
+python -c "import pandas, sklearn, matplotlib, joblib, tabulate; print('Core libraries OK')"
+python -c "import tensorflow, torch; print('TF', tensorflow.__version__, '| torch', torch.__version__)"
 ```
 
-**Done when:** both machines print `All libraries OK`.
+**Done when:** both machines print a `3.11.x` version, then `Core libraries OK`, then the TF and
+torch versions.
 
-> This machine has Python 3.13.7 with **no pip and no ensurepip installed**, so the `apt` line is
-> not optional - skip it and every later step fails.
+> **This project targets Python 3.11.** Do not use the system Python. This machine's system Python
+> is 3.13.7 and Ubuntu depends on it - leave it alone.
+>
+> **`sudo apt install python3.11` does not work here** and never will: Ubuntu 25.10 ("questing")
+> ships only `python3.13` and `python3.14`. The deadsnakes PPA has no questing series either. uv is
+> the fast way around this; GUIDE.md **Appendix A** lists every alternative (pyenv, conda, Docker,
+> standalone tarball, source build) if uv does not suit your partner's machine.
+>
+> The install is ~3 GB and takes 5–15 minutes - TensorFlow, PyTorch and PyTorch's CUDA packages.
+> That is expected. Appendix A and GUIDE.md 1.6 show the CPU-only torch option if disk is tight.
 >
 > The `(.venv)` in your prompt vanishes when you close the terminal. Every new terminal needs
 > `source .venv/bin/activate` again. A `ModuleNotFoundError` almost always means you forgot.
@@ -617,8 +630,8 @@ Prove it in a clean folder, following only the README:
 cd ~/Desktop
 git clone <your repo> fresh-test
 cd fresh-test
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+uv venv --python 3.11 .venv && source .venv/bin/activate
+uv pip install -r requirements.txt
 mkdir -p data/raw && cp ~/Desktop/AI-for-Cybersecurity-Lab1/data/raw/*.csv data/raw/
 python run_all.py
 ```

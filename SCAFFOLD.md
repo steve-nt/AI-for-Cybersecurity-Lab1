@@ -31,7 +31,7 @@ AI-for-Cybersecurity-Lab1/
 ├── README.md                 <- how to run it (you write this at the end)
 ├── GUIDE.md                  <- step-by-step instructions (do this first)
 ├── SCAFFOLD.md               <- this file: layout + all the code
-├── requirements.txt          <- list of libraries to install
+├── requirements.txt          <- list of libraries to install (Python 3.11)
 ├── .gitignore                <- stops huge data files being uploaded to git
 ├── run_all.py                <- runs the whole pipeline start to finish
 │
@@ -111,27 +111,44 @@ Create each of these exactly as written. GUIDE.md tells you when.
 The list of libraries the project needs.
 
 ```
-pandas==2.2.3
-numpy==2.1.3
-scikit-learn==1.5.2
-matplotlib==3.9.2
-joblib==1.4.2
+# Python 3.11
+tensorflow>=2.15.0,<2.18.0
+torch>=2.1.0
+scikit-learn>=1.3.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+joblib>=1.4.0
+tabulate>=0.9.0
 ```
 
+**This project requires Python 3.11.** Not the system 3.13. GUIDE.md 1.3 covers installing it, and
+GUIDE.md Appendix A lists every available method. The `tensorflow<2.18` bound is what makes the
+whole set resolve together; it also pins `numpy` to 1.26.x, which is expected and fine.
+
+`joblib` and `tabulate` are not optional extras - every script in section 5 imports `joblib` to
+save and load `splits.joblib`, and `compare.py` calls `df.to_markdown()`, which needs `tabulate`.
+
 **Note on the neural network:** the lab lets you use Keras/TensorFlow, PyTorch, **or**
-scikit-learn's `MLPClassifier` ("the easiest to start with"). We use `MLPClassifier`. It is a real
-neural network (a multi-layer perceptron), it counts for full marks, it is already inside
-scikit-learn so there is nothing extra to install, and TensorFlow does not reliably install on
-Python 3.13 which is what this machine has. This is the right choice, not a shortcut.
+scikit-learn's `MLPClassifier` ("the easiest to start with"). All three are installed, so any of
+them is available to you. The code below uses **`MLPClassifier`**. It is a real neural network (a
+multi-layer perceptron), it counts for full marks, it trains in seconds rather than minutes on this
+data, and it needs no GPU. TensorFlow and PyTorch are installed alongside it so you can swap in a
+Keras or torch model later without redoing setup. Using `MLPClassifier` is the right choice, not a
+shortcut.
 
 ---
 
 ### 4.2 `.gitignore`
 
-Stops you accidentally uploading a 500 MB dataset to GitHub.
+Stops you accidentally uploading a 500 MB dataset - or a whole Python interpreter - to GitHub.
+The `python/`, `Python-3.11.*/` and `py311.tar.gz` entries only matter if you installed 3.11 with
+method A2 or A6 from GUIDE.md Appendix A, but they are harmless otherwise.
 
 ```
 .venv/
+python/
+Python-3.11.*/
+py311.tar.gz
 __pycache__/
 *.pyc
 data/raw/*
@@ -960,7 +977,7 @@ scaffold, with the reasoning:
 | Stratified on the multiclass label, not binary | Keeps rare attack *types* proportionally present in all three splits. |
 | Dropped classes with < 10 rows | Cannot be split three ways or learned from. Say so in the report - it is a limitation, not a secret. |
 | Chose the winner on validation, scored once on test | This is what "no test-set peeking" means, and it is 25% of your grade. |
-| Used `MLPClassifier` as the neural network | Explicitly permitted by the lab brief, no extra install, works on Python 3.13. |
+| Used `MLPClassifier` as the neural network | Explicitly permitted by the lab brief, trains in seconds, needs no GPU. TensorFlow and PyTorch are installed too, so swapping it out later costs nothing. |
 | Judged by macro-F1 and FAR, not accuracy | The data is ~80% normal traffic, so a model that says "normal" every single time scores ~80% accuracy while catching zero attacks. |
 
 ---

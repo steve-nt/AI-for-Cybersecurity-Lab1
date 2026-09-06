@@ -97,36 +97,62 @@ ls
 If instead you see `No such file or directory`, the folder is somewhere else. Find it with
 `find ~ -name "AI-for-Cybersecurity-Lab1" -type d`.
 
-## 1.3 Install the Python tools
+## 1.3 Install Python 3.11
 
-Your machine has Python 3.13.7, but it is missing two pieces you need. Install them:
+**This project uses Python 3.11.** Your machine's system Python is 3.13.7, which is *not* the
+version we want, and you must not remove or replace it - Ubuntu itself depends on it.
+
+> **Why 3.11?** It is the version with the broadest, most settled support across TensorFlow,
+> PyTorch and scikit-learn simultaneously. Pinning it means the three libraries agree with each
+> other, and it is the version your marker is most likely to be able to reproduce.
+
+> **The trap:** `sudo apt install python3.11` **does not work on this machine** and never will.
+> Ubuntu 25.10 ("questing") ships only `python3.13` and `python3.14` in its archive. Most tutorials
+> tell you to add the deadsnakes PPA instead; deadsnakes has no `questing` release either (it went
+> 24.04 straight to 26.04), so that fails too. Use one of the methods below.
+
+Install [uv](https://docs.astral.sh/uv/), which fetches a prebuilt 3.11 in seconds without touching
+your system Python and without needing your password:
 
 ```bash
-sudo apt update
-sudo apt install -y python3-venv python3-pip
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+uv python install 3.11
 ```
 
-It will ask for your password. This takes a minute or two.
+**Check:**
 
-> **Why is this needed?** I checked your system: `python3 -m pip` reports *"No module named pip"*,
-> and `ensurepip` is missing too. Ubuntu ships these separately from Python itself. Without this
-> command, every later install step fails.
+```bash
+uv python list --only-installed
+```
+
+**You should see:** a line containing `cpython-3.11`.
+
+> **Other ways to do this.** uv is the recommendation, but it is not the only option, and if you
+> are on a different machine (or your partner is) another one may suit you better. All of them are
+> written out in **Appendix A** at the end of this guide - pyenv, conda, Docker, a plain tarball,
+> and building from source, plus the ones that look plausible but do not work here.
 
 ## 1.4 Create a virtual environment
 
 ```bash
-python3 -m venv .venv
+uv venv --python 3.11 .venv
 ```
 
-Nothing prints. That is success.
+**You should see:** `Using CPython 3.11.x` and `Creating virtual environment at: .venv`.
 
 > **What did that do?** It made a hidden folder called `.venv` containing a private, isolated copy
-> of Python just for this project. Libraries you install go in there instead of being mixed into
-> your whole operating system.
+> of Python 3.11 just for this project. Libraries you install go in there instead of being mixed
+> into your whole operating system.
 >
-> **Why bother?** Two reasons. First, modern Ubuntu actively blocks you from installing libraries
-> system-wide (you would hit an `externally-managed-environment` error). Second, six months from
-> now another project needing a different version of pandas will not break this one.
+> **Why bother?** Three reasons. First, it is how you get 3.11 while the system stays on 3.13.
+> Second, modern Ubuntu actively blocks you from installing libraries system-wide (you would hit an
+> `externally-managed-environment` error). Third, six months from now another project needing a
+> different version of pandas will not break this one.
+
+> **Not using uv?** Whichever method from Appendix A you picked, it ends by giving you a 3.11
+> interpreter. Create the environment with `<path-to-3.11> -m venv .venv` instead of the line
+> above. Everything after this point is identical.
 
 ## 1.5 Activate it
 
@@ -151,43 +177,78 @@ Create the shopping list. Copy this **whole block** including the `EOF` lines:
 
 ```bash
 cat > requirements.txt <<'EOF'
-pandas==2.2.3
-numpy==2.1.3
-scikit-learn==1.5.2
-matplotlib==3.9.2
-joblib==1.4.2
-tabulate==0.9.0
+# Python 3.11
+tensorflow>=2.15.0,<2.18.0
+torch>=2.1.0
+scikit-learn>=1.3.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+joblib>=1.4.0
+tabulate>=0.9.0
 EOF
 ```
 
 Now install:
 
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
-This downloads about 100 MB and takes 1–3 minutes.
+**This is a big download - roughly 3 GB, and 5–15 minutes on a normal connection.** Most of that is
+TensorFlow, PyTorch, and the ~20 `nvidia-*` CUDA packages PyTorch pulls in by default. It is normal.
+Do not interrupt it.
+
+> **Short on disk or bandwidth?** PyTorch has a CPU-only build that skips the CUDA packages and
+> saves about 2.5 GB. Your VM has no GPU, so you lose nothing:
+>
+> ```bash
+> uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+> uv pip install -r requirements.txt
+> ```
+
+> **`pip` instead of `uv pip`?** Both work. `uv pip` is dramatically faster on an install this
+> size. If you used a non-uv method from Appendix A, activate the venv and use plain
+> `pip install -r requirements.txt`.
 
 > **What are these?**
+> - **tensorflow** - Google's deep learning framework (includes Keras). The lab offers it as one of
+>   the options for the neural network.
+> - **torch** - PyTorch, Meta's deep learning framework. The other option the lab offers.
+> - **scikit-learn** - the machine learning library. All your models and scores come from here,
+>   including `MLPClassifier`, the neural network this project actually trains.
 > - **pandas** - spreadsheets for Python. Loads your CSV and lets you filter and clean it.
-> - **numpy** - fast maths on big grids of numbers. pandas is built on it.
-> - **scikit-learn** - the machine learning library. All your models and scores come from here.
 > - **matplotlib** - draws the charts.
 > - **joblib** - saves trained models and data splits to disk.
 > - **tabulate** - formats the final results table nicely.
 >
-> The version numbers are pinned so your results are reproducible. That is worth a line in your
-> README - the rubric asks for it.
+> `numpy` is not listed because TensorFlow, pandas and scikit-learn all depend on it - pip installs
+> it automatically. TensorFlow 2.17 requires `numpy<2`, so you will get 1.26.x. Let it.
+>
+> **Why install TensorFlow and PyTorch when the code uses `MLPClassifier`?** The lab brief lets you
+> pick any of the three, and having all three present means you can swap the neural network for a
+> Keras or PyTorch model later without redoing setup. See SCAFFOLD.md section 4.1.
+>
+> Versions are constrained so your results are reproducible. That is worth a line in your README -
+> the rubric asks for it.
 
 ## 1.7 Check it worked
 
 ```bash
-python -c "import pandas, sklearn, matplotlib; print('All libraries OK')"
+python -c "import sys; print(sys.version)"
+python -c "import pandas, sklearn, matplotlib, joblib, tabulate; print('Core libraries OK')"
+python -c "import tensorflow, torch; print('TF', tensorflow.__version__, '| torch', torch.__version__)"
 ```
 
-**You should see:** `All libraries OK`
+**You should see:** a version string starting `3.11.`, then `Core libraries OK`, then the TF and
+torch versions.
+
+If the first line does not say `3.11`, your venv was built from the wrong interpreter - delete
+`.venv` and redo 1.4.
 
 If you see `ModuleNotFoundError`, go back to 1.5 - you are not in the venv.
+
+> TensorFlow prints a few lines about `cuda` drivers or `TF-TRT` on that import. Those are
+> informational, not errors. Your VM has no GPU; TensorFlow falls back to CPU and works fine.
 
 **Part 1 is done.**
 
@@ -217,6 +278,9 @@ ls
 ```bash
 cat > .gitignore <<'EOF'
 .venv/
+python/
+Python-3.11.*/
+py311.tar.gz
 __pycache__/
 *.pyc
 data/raw/*
@@ -628,9 +692,11 @@ dataset. It classifies network connections as normal or attack (binary), and
 also identifies which type of attack (multiclass).
 
 ## Setup
-    python3 -m venv .venv
+Requires Python 3.11.
+    uv python install 3.11
+    uv venv --python 3.11 .venv
     source .venv/bin/activate
-    pip install -r requirements.txt
+    uv pip install -r requirements.txt
 
 ## Data
 Download CICIDS2017 from https://www.unb.ca/cic/datasets/ids-2017.html
@@ -649,12 +715,14 @@ Or run the steps individually:
     python src/compare.py       # Step 8: results table
 
 ## Reproducibility
+Python 3.11.
 Random seed: 42 (set in src/config.py).
 Sample fraction: 0.20 of one day's traffic.
-Library versions are pinned in requirements.txt.
+Library versions are constrained in requirements.txt.
 
 ## Libraries
-pandas, numpy, scikit-learn, matplotlib, joblib, tabulate
+tensorflow, torch, scikit-learn, pandas, matplotlib, joblib, tabulate
+The neural network is scikit-learn's MLPClassifier (permitted by the lab brief).
 
 ## Output
 Tables in results/tables/, figures in results/figures/.
@@ -748,7 +816,13 @@ Errors are normal. Read the **last line** of the error message first - that is t
 |---|---|---|
 | `ModuleNotFoundError: No module named 'pandas'` | Not in the virtual environment | `source .venv/bin/activate` |
 | `externally-managed-environment` | Installing outside a venv | Activate the venv first (1.5) |
-| `No module named pip` | pip not installed | `sudo apt install python3-pip python3-venv` |
+| `Unable to locate package python3.11` | Ubuntu 25.10 has no 3.11 package | Do not use apt. Use uv (1.3) or Appendix A |
+| `E: The repository ... questing Release does not have a Release file` | deadsnakes has no questing series | Do not use deadsnakes here. See Appendix A |
+| `uv: command not found` | Shell has not picked up uv yet | `source ~/.bashrc`, or open a new terminal |
+| Python version is 3.13, not 3.11 | venv built from system Python | `rm -rf .venv`, redo 1.4 |
+| `Could not find a version that satisfies tensorflow` | venv is not 3.11 | Check `python -c "import sys; print(sys.version)"`, redo 1.4 |
+| TensorFlow prints `cuda`/`TF-TRT` warnings on import | No GPU in this VM | Informational only. Ignore them. |
+| Install fills the disk | torch's CUDA packages are ~2.5 GB | Use the CPU-only torch index in 1.6 |
 | `FileNotFoundError: .../data/raw/...csv` | Filename mismatch | `ls data/raw/`, make `RAW_FILE` in `config.py` match exactly |
 | `KeyError: 'Label'` | Column name has stray spaces | The `.str.strip()` in `explore.py` handles this - check you copied it |
 | `ValueError: Input contains NaN or infinity` | Cleaning did not run | Run `python src/clean.py` before `prepare.py` |
@@ -766,8 +840,9 @@ not failure.
 # Checklist
 
 Setup:
-- [ ] `sudo apt install python3-venv python3-pip` done
-- [ ] `.venv` created and activated (prompt shows `(.venv)`)
+- [ ] Python 3.11 installed (uv, or a method from Appendix A)
+- [ ] `.venv` created **from 3.11** and activated (prompt shows `(.venv)`)
+- [ ] `python -c "import sys; print(sys.version)"` prints `3.11.x`
 - [ ] Libraries installed, `import` check passes
 - [ ] Folders created
 - [ ] All nine code files created from SCAFFOLD.md
@@ -823,3 +898,167 @@ training scores and poor test scores.
 **Test set** - data held back and used exactly once, at the end.
 **Validation set** - data used to choose between settings, so the test set stays untouched.
 **venv** - virtual environment. A private Python installation for one project.
+**uv** - a fast Python package and version manager. Used here to install Python 3.11.
+
+---
+
+# Appendix A: every way to install Python 3.11
+
+Section 1.3 gives you one method. This appendix lists all of them, so you can pick a different one
+if uv does not suit your machine, and so your report can say why you chose what you chose.
+
+**Context:** this VM runs Ubuntu 25.10 ("questing"), glibc 2.42, x86_64. The questing archive
+contains only `python3.13` and `python3.14`. There is no 3.11 package, so every working method
+below gets Python from somewhere other than `apt`.
+
+## The recommendation
+
+### A1. uv — no sudo, no compiler, seconds
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+uv python install 3.11
+uv venv --python 3.11 .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+Downloads a prebuilt interpreter into `~/.local/share/uv/`. Nothing outside your home directory
+changes, and your system Python 3.13 is untouched. `uv pip` also installs the ~3 GB of TensorFlow
+and PyTorch considerably faster than plain pip.
+
+## Also verified to work here
+
+### A2. Standalone build — a plain tarball, no tools at all
+
+uv's interpreters come from the `python-build-standalone` project. You can download one directly:
+
+```bash
+curl -sLo py311.tar.gz "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.11.16%2B20260901-x86_64-unknown-linux-gnu-install_only.tar.gz"
+tar xzf py311.tar.gz            # creates ./python/
+./python/bin/python3 --version  # Python 3.11.16
+./python/bin/python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+47 MB, no password, no build step. This was run on this machine and confirmed working, including
+`ssl`, `sqlite3`, `ctypes`, `lzma` and `tkinter`. Add `python/` to `.gitignore` if you use it.
+
+### A3. Docker — fully isolated, host untouched
+
+Docker is already installed here (29.7.2).
+
+```bash
+docker run -it --rm -v "$PWD:/work" -w /work python:3.11 bash
+pip install -r requirements.txt
+python run_all.py
+```
+
+The strongest reproducibility story for your report, and the easiest to hand to a marker. The
+trade-off is that you work inside the container, and results land in your mounted folder.
+
+### A4. conda / miniforge — the ML-coursework standard
+
+```bash
+curl -LsO https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+bash Miniforge3-Linux-x86_64.sh
+# restart the shell, then:
+conda create -n lab1 python=3.11
+conda activate lab1
+pip install -r requirements.txt
+```
+
+Heaviest install, but it handles TensorFlow and CUDA dependencies well and is what most ML courses
+assume. Note you would use `conda activate lab1` everywhere this guide says
+`source .venv/bin/activate`.
+
+## Workable, but more effort
+
+### A5. pyenv — compiles from source
+
+```bash
+sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
+  libreadline-dev libsqlite3-dev libffi-dev liblzma-dev tk-dev
+curl https://pyenv.run | bash
+# add pyenv's init lines to ~/.bashrc as its output instructs, then restart the shell
+pyenv install 3.11.16
+pyenv local 3.11.16
+python -m venv .venv && source .venv/bin/activate
+```
+
+Takes 5–15 minutes to compile. **Install every build dependency listed.** Miss one and you get a
+Python silently lacking `ssl` or `lzma`, which does not fail at build time - it fails later, when
+pip cannot reach the internet or pandas cannot read a compressed file.
+
+### A6. Build from python.org directly
+
+```bash
+# same build dependencies as A5, then:
+curl -LO https://www.python.org/ftp/python/3.11.16/Python-3.11.16.tgz
+tar xzf Python-3.11.16.tgz && cd Python-3.11.16
+./configure --enable-optimizations
+make -j$(nproc)
+sudo make altinstall        # NOT "make install"
+python3.11 -m venv ~/Desktop/AI-for-Cybersecurity-Lab1/.venv
+```
+
+> **`make altinstall`, never `make install`.** `make install` overwrites `/usr/bin/python3`, which
+> Ubuntu's own tooling (including apt) depends on. That breaks the operating system and is
+> genuinely hard to recover from on a VM. `altinstall` installs as `python3.11` alongside, safely.
+
+### A7. mise or asdf — general version managers
+
+```bash
+curl https://mise.run | sh
+mise use python@3.11
+```
+
+Same idea as pyenv, newer tooling. Sensible if you already use one of them for Node or Ruby.
+Neither is installed on this machine.
+
+## Do not use these
+
+### A8. `sudo apt install python3.11` — impossible
+
+This is the command that fails with `Unable to locate package python3.11`. Ubuntu 25.10 carries
+only 3.13 and 3.14. No amount of `apt update` changes this.
+
+### A9. deadsnakes PPA — no questing release
+
+The standard tutorial answer, and it does not work here. The PPA publishes these series:
+
+```
+bionic  devel  focal  jammy  noble  precise  resolute  trusty  vivid  xenial
+```
+
+There is no `questing`; it skipped 25.10 entirely, going from noble (24.04) to resolute (26.04).
+Adding the PPA gives you a 404 on the Release file and leaves apt in an error state on every
+subsequent `apt update`.
+
+### A10. deadsnakes pinned to `noble` — works, but risks your system
+
+Noble does carry `python3.11`, `python3.11-venv` and `python3.11-dev`, and you can force apt to
+read the 24.04 archive from a 25.10 system. Do not. You would be mixing packages built against
+glibc 2.39 into a glibc 2.42 system, with apt then free to pull noble versions of unrelated
+dependencies. It can break packages far outside Python. Not worth it when A1 takes ten seconds.
+
+### A11. Snap — does not exist
+
+There is no Python 3.11 snap. Searching `snap find python` returns hobby packages for 3.6, 3.8 and
+similar, none maintained and none 3.11.
+
+## Which to pick
+
+| Situation | Method |
+|---|---|
+| This VM, normal case | **A1 uv** |
+| No network tooling, want one file | A2 standalone tarball |
+| Want maximum reproducibility for the marker | A3 Docker |
+| Already comfortable with conda | A4 conda |
+| Already use pyenv for other projects | A5 pyenv |
+| Different machine, different distro | A1 uv still works everywhere |
+
+Whichever you use, record it in your README. The rubric asks for reproducibility, and "Python 3.11
+via uv" is a concrete, checkable answer.
