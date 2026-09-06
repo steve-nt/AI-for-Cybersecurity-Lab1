@@ -57,7 +57,7 @@ The keys both sides rely on:
 | T04 | Create `config.py` | A | Seed, paths, split sizes, ID columns to drop | T03 |
 | T05 | Put the dataset in place | Both | Move CSV to `data/raw/`, make `RAW_FILE` match exactly | T01, T04 |
 | T06 | Build `explore.py` | A | Lab Step 1: load, print shape/columns/balance, bar chart | T05 |
-| T07 | Build `clean.py` | A | Lab Step 2: drop IDs, fix inf/NaN, dedupe, sample 20% | T06 |
+| T07 | Build `clean.py` | A | Lab Step 2: drop IDs, fix inf/NaN, dedupe, protect tiny classes, sample 20% | T06 |
 | T08 | Record the cleaning numbers | A | Write down every before/after count while on screen | T07 |
 | T09 | Build `prepare.py` | A | Lab Steps 3–4: stratified 60/20/20, scale on train only | T07 |
 | T10 | Build `metrics.py` | B | Accuracy, macro-F1, recall, ROC-AUC, hand-written FAR | T04 |
@@ -219,7 +219,8 @@ names have leading spaces in them.
 **What to do.** Copy SCAFFOLD.md section 4.6 into `src/clean.py`, then `python src/clean.py`.
 
 It drops ID columns, fixes infinity and NaN, removes duplicate rows and dead columns, drops
-ultra-rare classes, and takes a 20% stratified sample.
+ultra-rare classes (< 10 rows), and takes a 20% stratified sample - holding back classes of 10-19
+rows and keeping those whole, so they still reach the test set.
 
 **Done when:** `data/processed/clean.csv` exists and six numbered report lines printed.
 
@@ -242,6 +243,7 @@ understanding in the report. GUIDE.md Part 4 Step 2.
 - how many duplicate rows dropped
 - how many constant columns dropped
 - which rare classes were dropped, and their counts
+- which classes were PROTECTED from sampling, and their counts
 - final rows and columns
 
 **Done when:** the note exists. **Do it now, not later** - the output scrolls away and re-running

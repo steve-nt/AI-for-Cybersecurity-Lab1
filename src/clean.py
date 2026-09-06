@@ -67,14 +67,26 @@ def main():
     # --- 2f. Take a sample -------------------------------------------------
     # "stratify" means: keep the same mix of normal/attack in the sample as in
     # the full data. A plain random sample could miss a rare attack entirely.
+    # Very small classes are held back and kept whole - sampling them would cut
+    # them below the point where they can appear in all three splits. See the
+    # PROTECT_CLASS_BELOW comment in config.py for the full reasoning.
     if config.SAMPLE_FRACTION < 1.0:
-        df, _ = train_test_split(
-            df,
+        counts = df[config.LABEL_COLUMN].value_counts()
+        protected = counts[counts < config.PROTECT_CLASS_BELOW].index
+        small = df[df[config.LABEL_COLUMN].isin(protected)]
+        rest = df[~df[config.LABEL_COLUMN].isin(protected)]
+        rest, _ = train_test_split(
+            rest,
             train_size=config.SAMPLE_FRACTION,
-            stratify=df[config.LABEL_COLUMN],
+            stratify=rest[config.LABEL_COLUMN],
             random_state=config.SEED,
         )
+        df = pd.concat([rest, small])
         print(f"[6] Sampled {config.SAMPLE_FRACTION:.0%} -> {len(df):,} rows")
+        for label in protected:
+            n = (small[config.LABEL_COLUMN] == label).sum()
+            print(f"    PROTECTED {label}: kept all {n} rows (< "
+                  f"{config.PROTECT_CLASS_BELOW}). NOTE THIS IN YOUR REPORT.")
     else:
         print("[6] Using 100% of the rows")
 

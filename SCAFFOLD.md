@@ -48,7 +48,8 @@ AI-for-Cybersecurity-Lab1/
 │   ├── train_binary.py       <- Lab Steps 5 + 6: classical models + neural network
 │   ├── ablation.py           <- Lab Step 7: change one thing
 │   ├── multiclass.py         <- the "which attack is it" version
-│   └── compare.py            <- Lab Step 8: final results table
+│   ├── compare.py            <- Lab Step 8: final results table
+│   └── make_dummy_splits.py  <- FAKE splits.joblib, so B can build before A finishes
 │
 ├── results/
 │   ├── figures/              <- .png charts for your report (auto-created)
@@ -211,6 +212,23 @@ BENIGN_LABEL = "BENIGN"     # the value that means "normal traffic"
 # Attack types with fewer than this many rows get dropped. Too few examples to
 # learn from, and they break a stratified split. Mention this in your report.
 MIN_CLASS_COUNT = 10
+
+# Classes that survive MIN_CLASS_COUNT but are still smaller than this are kept
+# WHOLE - they skip the sampling step in clean.py.
+#
+# WHY: Heartbleed has 11 rows in the Wednesday file. It clears MIN_CLASS_COUNT by
+# one row, but a 20% sample cuts it to 2 - enough to survive the split, not enough
+# to land in the test set at all. The result is a "phantom" class: it is in the
+# training data, so the confusion matrix reserves an all-zero row for it, and
+# macro-FAR averages over a class that was never actually tested.
+#
+# The full policy is: drop below MIN_CLASS_COUNT, keep whole below
+# PROTECT_CLASS_BELOW, sample normally at or above it.
+#
+# FOR THE REPORT: a protected class is deliberately over-represented compared with
+# a true 20% sample, and its per-class scores rest on only a handful of test rows.
+# State both facts plainly - a perfect score on 2 test rows proves nothing.
+PROTECT_CLASS_BELOW = 20
 
 # ---------------------------------------------------------------------------
 # Train / validation / test split -> 60% / 20% / 20%
@@ -486,14 +504,26 @@ def main():
     # --- 2f. Take a sample -------------------------------------------------
     # "stratify" means: keep the same mix of normal/attack in the sample as in
     # the full data. A plain random sample could miss a rare attack entirely.
+    # Very small classes are held back and kept whole - sampling them would cut
+    # them below the point where they can appear in all three splits. See the
+    # PROTECT_CLASS_BELOW comment in config.py for the full reasoning.
     if config.SAMPLE_FRACTION < 1.0:
-        df, _ = train_test_split(
-            df,
+        counts = df[config.LABEL_COLUMN].value_counts()
+        protected = counts[counts < config.PROTECT_CLASS_BELOW].index
+        small = df[df[config.LABEL_COLUMN].isin(protected)]
+        rest = df[~df[config.LABEL_COLUMN].isin(protected)]
+        rest, _ = train_test_split(
+            rest,
             train_size=config.SAMPLE_FRACTION,
-            stratify=df[config.LABEL_COLUMN],
+            stratify=rest[config.LABEL_COLUMN],
             random_state=config.SEED,
         )
+        df = pd.concat([rest, small])
         print(f"[6] Sampled {config.SAMPLE_FRACTION:.0%} -> {len(df):,} rows")
+        for label in protected:
+            n = (small[config.LABEL_COLUMN] == label).sum()
+            print(f"    PROTECTED {label}: kept all {n} rows (< "
+                  f"{config.PROTECT_CLASS_BELOW}). NOTE THIS IN YOUR REPORT.")
     else:
         print("[6] Using 100% of the rows")
 
@@ -964,6 +994,103 @@ print("\nAll steps finished. Look in results/ for your tables and figures.")
 
 ---
 
+### 4.13 `src/make_dummy_splits.py` - fake data so B is never blocked
+
+**This file never produces a number that goes in your report.** Its only job is to unblock Person B.
+
+A's pipeline ends by writing one file, `data/processed/splits.joblib`, holding a dictionary. B's
+scripts only ever read that dictionary - they do not care where it came from. So this script writes
+a *fake* one with the same keys, letting B build and test the whole modelling half (4.8-4.11) on day
+one instead of waiting for A's cleaning pipeline to land. When the real pipeline is ready, delete
+the fake file and rerun. No code changes.
+
+It is also tiny - 6,000 rows against the real ~140,000 - so B's test cycle is seconds, not minutes.
+
+```python
+"""Creates a FAKE splits.joblib so the modelling scripts can be built and tested
+before the real cleaning pipeline is finished.
+
+Run:  python src/make_dummy_splits.py
+"""
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+import config
+
+N_ROWS = 6000
+N_FEATURES = 20
+
+
+def main():
+    print("!" * 70)
+    print("!!  WARNING: GENERATING FAKE DATA FOR TESTING ONLY")
+    print("!!  Any results produced from this are MEANINGLESS.")
+    print("!!  Delete data/processed/ and run the real pipeline before")
+    print("!!  putting ANY number in your report.")
+    print("!" * 70)
+
+    X, yb = make_classification(
+        n_samples=N_ROWS,
+        n_features=N_FEATURES,
+        n_informative=10,
+        n_redundant=4,
+        weights=[0.8, 0.2],      # same imbalance shape as the real data
+        class_sep=1.2,
+        random_state=config.SEED,
+    )
+    X = pd.DataFrame(X, columns=[f"fake_feature_{i}" for i in range(N_FEATURES)])
+    yb = pd.Series(yb, name=config.LABEL_COLUMN)
+
+    rng = np.random.default_rng(config.SEED)
+    fake_attacks = rng.choice(["FakeDoS", "FakePortScan", "FakeBruteForce"], size=len(yb))
+    ym = pd.Series(np.where(yb == 0, config.BENIGN_LABEL, fake_attacks))
+
+    X_tmp, X_test, yb_tmp, yb_test, ym_tmp, ym_test = train_test_split(
+        X, yb, ym, test_size=config.TEST_SIZE, stratify=ym, random_state=config.SEED)
+    X_train, X_val, yb_train, yb_val, ym_train, ym_val = train_test_split(
+        X_tmp, yb_tmp, ym_tmp, test_size=config.VAL_SIZE_OF_REMAINDER,
+        stratify=ym_tmp, random_state=config.SEED)
+
+    scaler = StandardScaler()
+    X_train_s = scaler.fit_transform(X_train)
+    X_val_s = scaler.transform(X_val)
+    X_test_s = scaler.transform(X_test)
+
+    bundle = {
+        "X_train": X_train, "X_val": X_val, "X_test": X_test,
+        "X_train_s": X_train_s, "X_val_s": X_val_s, "X_test_s": X_test_s,
+        "yb_train": yb_train, "yb_val": yb_val, "yb_test": yb_test,
+        "ym_train": ym_train, "ym_val": ym_val, "ym_test": ym_test,
+        "feature_names": list(X.columns),
+        "scaler": scaler,
+        "seed": config.SEED,
+        "source": "DUMMY - NOT REAL DATA",
+    }
+    joblib.dump(bundle, config.SPLITS_FILE)
+    print(f"\nWrote FAKE splits ({N_ROWS} rows, {N_FEATURES} features) -> {config.SPLITS_FILE}")
+    print("Real data will have ~140,000 rows and ~70 features. If you see 6000, it is fake.")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Run it with:
+
+```bash
+python src/make_dummy_splits.py
+```
+
+> **The one danger is forgetting the numbers are fake.** They are deliberately absurd: 6,000 rows,
+> 20 features, and attack names that start with "Fake". TASKLIST T17 wipes them and T23 double-checks
+> that nothing fake reached the report. Never copy a number into the report before T17.
+
+---
+
 ## 5. Design decisions you should defend in your report
 
 Markers give credit for knowing *why* you did things. These are the choices baked into this
@@ -976,6 +1103,7 @@ scaffold, with the reasoning:
 | Fitted the scaler on training data only | Fitting on everything leaks information about the test set into training. |
 | Stratified on the multiclass label, not binary | Keeps rare attack *types* proportionally present in all three splits. |
 | Dropped classes with < 10 rows | Cannot be split three ways or learned from. Say so in the report - it is a limitation, not a secret. |
+| Kept classes of 10-19 rows whole, exempt from the 20% sample | Heartbleed has 11 rows. Sampling it to 2 left it in training but absent from the test set - a phantom class that put an empty row in the confusion matrix and diluted macro-FAR. Protecting it costs 0.0001 of macro-F1 and makes the sampled run behave like the full run. **Its scores rest on 2 test rows, so report the support and claim nothing from them.** |
 | Chose the winner on validation, scored once on test | This is what "no test-set peeking" means, and it is 25% of your grade. |
 | Used `MLPClassifier` as the neural network | Explicitly permitted by the lab brief, trains in seconds, needs no GPU. TensorFlow and PyTorch are installed too, so swapping it out later costs nothing. |
 | Judged by macro-F1 and FAR, not accuracy | The data is ~80% normal traffic, so a model that says "normal" every single time scores ~80% accuracy while catching zero attacks. |

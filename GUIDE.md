@@ -294,7 +294,7 @@ EOF
 
 ## 2.3 Create the code files
 
-Open SCAFFOLD.md and copy each code block into the matching file. There are eight files in `src/`
+Open SCAFFOLD.md and copy each code block into the matching file. There are ten files in `src/`
 plus `run_all.py` at the top level.
 
 **How to create a file:** the simplest way is a text editor. Ubuntu has one built in:
@@ -322,6 +322,7 @@ Create these, in this order:
 | `src/multiclass.py` | 4.10 |
 | `src/compare.py` | 4.11 |
 | `run_all.py` | 4.12 |
+| `src/make_dummy_splits.py` | 4.13 |
 
 > **Python is picky about indentation.** The spaces at the start of lines are part of the language,
 > not decoration. Copy blocks whole; do not retype them, and do not "tidy up" the spacing.
@@ -332,7 +333,7 @@ Create these, in this order:
 ls src/
 ```
 
-**You should see all eight `.py` files.**
+**You should see all ten `.py` files.**
 
 ---
 
@@ -454,7 +455,13 @@ material for the "what you did" section of your report - write the numbers down.
 > 5. **Dropped ultra-rare attack types** (under 10 examples). Too few to learn from, and they break
 >    the split in the next step. **Mention this in your report** - it is a limitation, and naming
 >    your own limitations earns marks.
-> 6. **Took a 20% sample**, keeping the same mix of attack types.
+>    Classes of 10-19 rows are **exempt** from the next step and kept whole.
+> 6. **Took a 20% sample**, keeping the same mix of attack types - except for those
+>    protected tiny classes. Without the exemption, an 11-row class becomes 2 rows,
+>    which is enough to stay in training but not enough to reach the test set, and
+>    you end up scoring a class that was never tested. If a `PROTECTED` line appears
+>    in the output, **record it** - it belongs in your limitations paragraph, along
+>    with the fact that such a class is judged on a couple of test rows.
 
 ## Step 3 - Split and scale
 
@@ -845,7 +852,7 @@ Setup:
 - [ ] `python -c "import sys; print(sys.version)"` prints `3.11.x`
 - [ ] Libraries installed, `import` check passes
 - [ ] Folders created
-- [ ] All nine code files created from SCAFFOLD.md
+- [ ] All eleven code files created (ten in `src/` plus `run_all.py`)
 - [ ] Dataset downloaded into `data/raw/`
 - [ ] `RAW_FILE` in `config.py` matches the actual filename
 

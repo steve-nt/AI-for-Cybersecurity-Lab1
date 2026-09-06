@@ -45,6 +45,23 @@ BENIGN_LABEL = "BENIGN"     # the value that means "normal traffic"
 # learn from, and they break a stratified split. Mention this in your report.
 MIN_CLASS_COUNT = 10
 
+# Classes that survive MIN_CLASS_COUNT but are still smaller than this are kept
+# WHOLE - they skip the sampling step in clean.py.
+#
+# WHY: Heartbleed has 11 rows in the Wednesday file. It clears MIN_CLASS_COUNT by
+# one row, but a 20% sample cuts it to 2 - enough to survive the split, not enough
+# to land in the test set at all. The result is a "phantom" class: it is in the
+# training data, so the confusion matrix reserves an all-zero row for it, and
+# macro-FAR averages over a class that was never actually tested.
+#
+# The full policy is: drop below MIN_CLASS_COUNT, keep whole below
+# PROTECT_CLASS_BELOW, sample normally at or above it.
+#
+# FOR THE REPORT: a protected class is deliberately over-represented compared with
+# a true 20% sample, and its per-class scores rest on only a handful of test rows.
+# State both facts plainly - a perfect score on 2 test rows proves nothing.
+PROTECT_CLASS_BELOW = 20
+
 # ---------------------------------------------------------------------------
 # Train / validation / test split -> 60% / 20% / 20%
 # ---------------------------------------------------------------------------
