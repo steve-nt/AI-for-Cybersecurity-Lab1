@@ -258,6 +258,47 @@ its numbers are bigger, and gradient descent struggles on the resulting ill-cond
 decision tree asks *"is this value above 500?"*, and that question means the same thing in any units -
 so Random Forest is indifferent **by construction**, not by luck.
 
+**Direct evidence for that mechanism: the solver told us.** Training Logistic Regression on unscaled
+features emits a `ConvergenceWarning` from scikit-learn:
+
+```
+ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT.
+Increase the number of iterations (max_iter) or scale the data
+```
+
+The warning appears **only on the unscaled arm**. We verified this from the saved model rather than
+inferring it from the console: the fitted scaled model reports `n_iter_ = 170` against a limit of
+`max_iter = 1000`, so it converged comfortably. The unscaled model exhausted all 1000 iterations and
+stopped without reaching a solution.
+
+This matters for three reasons.
+
+1. **It confirms the mechanism rather than merely the outcome.** We are not just observing that
+   unscaled scores are lower; we can see *why*. The features span microseconds-to-millions alongside
+   flag counts of 0 to 8, which makes the optimisation surface badly conditioned. The same solver
+   that flounders for 1000 iterations on raw features finds the optimum in 170 once they are
+   standardised.
+2. **The headline numbers in Table 1 are unaffected.** Every tuned model in rows 1-3 converged. The
+   warning belongs solely to the ablation's unscaled arm, which exists precisely to be worse.
+3. **scikit-learn's own advice is the experiment.** The warning suggests *"increase max_iter **or**
+   scale the data"*. Our ablation runs that second option as a controlled comparison.
+
+**We deliberately did not raise `max_iter` to silence the warning.** An ablation must change exactly
+one thing. Granting the unscaled model a larger iteration budget while the scaled model kept 1000
+would have changed two variables at once and invalidated the comparison. Both arms use
+`max_iter=1000` (`src/ablation.py:33`). It would also probably not have helped: the obstacle is
+ill-conditioning, not an insufficient budget.
+
+One methodological note in the interest of precision. Python displays a given warning only once per
+code location by default, so seeing the message once does not by itself prove that only one fit
+failed to converge. The saved model's `n_iter_` value settles it independently, which is why we
+checked that rather than relying on the console output.
+
+The MLP is configured with `max_iter=100` and `early_stopping=True` (`src/ablation.py:37`), so its
+unscaled degradation is a genuine difference in fit quality rather than an artefact of a truncated
+optimisation.
+
 ## 4. Discussion
 
 ### 4.1 Which model we would deploy
