@@ -28,6 +28,53 @@ MODELS = RESULTS / "models"
 # The file you downloaded. CHANGE THIS LINE to match your actual filename.
 RAW_FILE = DATA_RAW / "Wednesday-workingHours.pcap_ISCX.csv"
 
+# ---------------------------------------------------------------------------
+# OPTIONAL: using several days' files together
+# ---------------------------------------------------------------------------
+# The pipeline reads ONE file. To combine all eight CICIDS2017 day-files,
+# uncomment the line below and swap load_raw() in explore.py for the commented
+# multi-file version there. Nothing else downstream needs to change - clean.py
+# calls load_raw(), and every later script reads clean.csv.
+#
+# RAW_FILES = sorted(DATA_RAW.glob("*.csv"))
+#
+# VERIFIED: all eight files share identical 79-column headers, so they can be
+# concatenated safely without producing NaN columns.
+#
+# What the data becomes (measured, not estimated):
+#   692,703 rows /  6 classes   ->   2,830,743 rows / 15 classes
+#   BENIGN 63.52%               ->   BENIGN 80.30%
+#   New attack families: PortScan, DDoS, FTP-Patator, SSH-Patator, Bot,
+#   Web Attack (Brute Force / XSS / Sql Injection), Infiltration.
+#
+# FOUR THINGS MUST CHANGE WITH IT:
+#
+# 1. PROTECT_CLASS_BELOW = 20 becomes WRONG and silently recreates the phantom
+#    class bug it was added to fix. Web Attack Sql Injection has 21 rows and
+#    Infiltration has 36 - both just ABOVE the threshold, so both get sampled.
+#    At 20% that leaves 4 and 7 rows, and a 4-row class splits to about 2/1/1:
+#    present in training, absent from test. Raise it to about 200, which
+#    protects those two plus Heartbleed while leaving Bot (1,966) sampled.
+#
+# 2. SAMPLE_FRACTION = 0.20 becomes too slow. 20% of 2.83M is ~566,000 rows,
+#    roughly 5x the current run, so hours rather than ~30 minutes. Use 0.05 for
+#    a comparable ~141,000 rows, then raise it once everything works.
+#
+# 3. The Web Attack labels contain a literal U+FFFD replacement character,
+#    baked into the CSV by CIC upstream - the raw bytes are ef bf bd. It is
+#    valid UTF-8 so nothing crashes, but "Web Attack <?> Brute Force" would
+#    appear in your confusion matrix figure and per-class table. The multi-file
+#    load_raw() in explore.py strips it.
+#
+# 4. Memory. Measured: one day is 477 MB in RAM; all eight extrapolate to
+#    ~1.9 GB, peaking near 3.9 GB during the concatenation. Fine on Colab
+#    (~12 GB). Tight on a VM with less than ~6 GB free - if it runs out, clean
+#    each file separately and concatenate the cleaned frames instead.
+#
+# NOTE FOR THE REPORT: switching to multi-day invalidates every number in a
+# single-day report. Different rows, different classes, different balance - it
+# is a rewrite, not a patch. Get a working single-day submission first.
+
 CLEAN_FILE = DATA_PROCESSED / "clean.csv"
 SPLITS_FILE = DATA_PROCESSED / "splits.joblib"
 

@@ -32,6 +32,41 @@ def load_raw(path=config.RAW_FILE):
     return df
 
 
+# ---------------------------------------------------------------------------
+# OPTIONAL: the multi-file version of load_raw()
+# ---------------------------------------------------------------------------
+# To combine several days' CSVs, uncomment RAW_FILES in config.py, then replace
+# the load_raw() above with this. See the long comment in config.py first - it
+# lists the four settings that must change alongside it.
+#
+# def load_raw(paths=None):
+#     """Load every CSV in data/raw/ and concatenate them.
+#
+#     All eight CICIDS2017 day-files share identical 79-column headers, so they
+#     concatenate cleanly. The extra .str.replace strips the U+FFFD replacement
+#     character that CIC baked into the Web Attack labels upstream.
+#     """
+#     paths = list(paths if paths is not None else config.RAW_FILES)
+#     if not paths:
+#         raise SystemExit(
+#             f"\nNo CSV files found in:\n  {config.DATA_RAW}\n\n"
+#             "Download the data (GUIDE.md section 3) and put the .csv files there.\n"
+#         )
+#     frames = []
+#     for p in paths:
+#         print(f"  loading {p.name} ...")
+#         d = pd.read_csv(p, low_memory=False)
+#         d.columns = d.columns.str.strip()
+#         frames.append(d)
+#     df = pd.concat(frames, ignore_index=True)
+#     df[config.LABEL_COLUMN] = (
+#         df[config.LABEL_COLUMN].astype(str).str.strip()
+#         .str.replace("\ufffd", "-", regex=False)
+#     )
+#     print(f"  combined {len(paths)} files -> {len(df):,} rows")
+#     return df
+
+
 def main():
     df = load_raw()
 
