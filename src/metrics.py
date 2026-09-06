@@ -1,6 +1,5 @@
 """Every score the lab asks for, computed in one place.
 
-Read section 5 of GUIDE.md for what these numbers actually mean.
 """
 import numpy as np
 from sklearn.metrics import (
@@ -17,10 +16,6 @@ def false_alarm_rate(y_true, y_pred):
     wrongly scream about?
 
         FAR = FP / (FP + TN)
-
-    This is the number a real security team cares about most. A detector with a
-    5% FAR on a network carrying a million normal connections a day generates
-    50,000 false alarms a day, and the humans stop reading them.
 
     scikit-learn has no built-in function for this, so we compute it from the
     confusion matrix ourselves.
