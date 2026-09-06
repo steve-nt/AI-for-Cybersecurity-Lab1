@@ -1,2 +1,11 @@
 cicresearch/
 MachineLearningCVE/
+.venv/
+python/
+Python-3.11.*/
+py311.tar.gz
+__pycache__/
+*.pyc
+data/raw/*
+data/processed/*
+results/models/*
