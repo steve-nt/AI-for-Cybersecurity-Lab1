@@ -1,0 +1,10 @@
+model,accuracy,macro_f1,recall_attack,roc_auc,FAR,notes
+LogisticRegression,0.9804,0.9779,0.9768,0.9978,0.0178,{'C': 1.0}
+RandomForest,0.9984,0.9982,0.9977,0.9999,0.0012,"{'n_estimators': 100, 'max_depth': None}"
+MLP (neural network),0.9943,0.9935,0.9914,0.9998,0.0043,"{'hidden_layer_sizes': (64, 32)}"
+LogisticRegression [WITHOUT scaling],0.9222,0.9118,0.8745,0.9471,0.0542,ablation: scaling
+LogisticRegression [WITH scaling],0.9804,0.9779,0.9768,0.9978,0.0178,ablation: scaling
+RandomForest [WITHOUT scaling],0.9984,0.9982,0.9977,0.9999,0.0012,ablation: scaling
+RandomForest [WITH scaling],0.9985,0.9983,0.9975,0.9999,0.001,ablation: scaling
+MLP (neural network) [WITHOUT scaling],0.9664,0.9618,0.9377,0.9807,0.0194,ablation: scaling
+MLP (neural network) [WITH scaling],0.9943,0.9935,0.9914,0.9998,0.0043,ablation: scaling

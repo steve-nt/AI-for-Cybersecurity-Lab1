@@ -9,3 +9,11 @@ __pycache__/
 data/raw/*
 data/processed/*
 results/models/*
+# ---- large artifacts, at ANY depth ----
+# NOTE: a pattern with a slash is anchored to the repo root, so the rules
+# above only ever matched top-level data/ and results/. These catch the
+# copies inside collab/, results-all-cvs/, results-collab/ and anywhere else.
+**/data/raw/*
+**/data/processed/*
+*.joblib
+!**/.gitkeep

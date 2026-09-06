@@ -2,8 +2,8 @@
 ## The same results, explained in plain language
 
 **Dataset:** CICIDS2017, all eight day-files combined
-**Random seed:** 42 · **Code:** `src/` + `run_all.py` · **Results:** `results-all-cvs/`
-**Authors:** [NAME A] and [NAME B]
+**Random seed:** 42 · **Code:** `collab/src/` + `run_all.py` · **Results:** `collab/results/`
+**Authors:** Kirill Silchenko (kirsil-5@student.ltu.se) and Stefanos Ntentopoulos (stente-5@student.ltu.se)
 
 > This is a plain-English companion to `REPORT-ALL=CVS.md`. Same run, same numbers, no jargon left
 > unexplained. If you want the formal version, read that one instead.
@@ -49,7 +49,7 @@ Here is the first important fact:
 | Everything else - 14 kinds of attack | 19.7% |
 
 **Four out of every five connections are perfectly innocent.** Hold on to that number, because it is
-about to matter enormously.
+about to matter enormously. After cleaning it rises further, to **roughly 85 in every 100**.
 
 The attacks are also wildly uneven. `DoS Hulk` appears 231,073 times. `Heartbleed` appears **11
 times** in nearly three million rows.
@@ -71,20 +71,48 @@ because tomorrow the attacker uses a different address. This mistake has a name:
 connection lasted zero time, the answer is infinity. No model can do arithmetic with infinity, so
 those rows had to go.
 
-**Duplicates.** Over a hundred thousand rows appeared more than once. This is more dangerous than it
-sounds: the same row can end up in the practice set *and* the exam set, so the model gets tested on
-something it has already memorised. Your score comes out looking great and means nothing.
+**Duplicates - and this turned out to be the big one.** **594,712 rows appeared more than once**,
+over a fifth of everything we had. Duplicates are more dangerous than they sound: the same row can
+end up in the practice set *and* the exam set, so the model gets tested on something it has already
+memorised. The score comes out looking great and means nothing.
+
+One class was almost entirely duplicates:
+
+| Attack | Rows before | Rows after removing duplicates |
+|---|---|---|
+| DDoS | 128,027 | ~128,015 |
+| DoS Hulk | 231,073 | ~172,845 |
+| **Port scanning** | **158,930** | **~1,955** |
+
+**Almost 99% of the port-scan rows were exact copies of each other.** That is not a mistake in the
+data - it is what port scanning *is*. The attacker fires nearly identical probes at one port after
+another, so the records they produce are indistinguishable. Port scanning went from being the third
+most common thing in the dataset to being genuinely rare.
 
 **Dead columns.** Some columns have the same value in every single row. They cannot help you tell
 anything apart, so we dropped them.
 
-**One special case.** Three attacks are almost nonexistent - Heartbleed has 11 examples, SQL
-Injection 21, Infiltration 36. We used a fifth of the data to keep things fast, but a fifth of 11 is
-2, and 2 examples cannot be split into practice, tuning and exam sets. Those classes would sit in
-the practice set and never appear in the exam - present but never actually graded. So we kept the
-tiny classes whole instead of sampling them.
+**Very rare attacks - and a mistake we made here.** Three attacks barely appear at all: Heartbleed
+has 11 examples, SQL injection 21, and Infiltration 36, out of nearly three million rows.
 
-**After all that: 446,645 connections with 68 measurements each.**
+We only used a fifth of the data to keep training fast. But a fifth of 11 is 2 - not enough to
+split into practice, tuning and exam sets. So we wrote a rule: **any class with fewer than 20 rows
+skips the sampling and is kept whole.**
+
+**We set that threshold one row too low.** After removing duplicates, SQL injection had about 20 rows
+and Infiltration about 35. Both sat *just above* our cut-off, so neither was protected, and both got
+cut to a fifth:
+
+| Attack | Started with | Kept whole? | Ended up in the exam set |
+|---|---|---|---|
+| Heartbleed | 11 | yes | 2 rows |
+| SQL injection | ~20 | **no - missed by one row** | **1 row** |
+| Infiltration | ~35 | **no** | **1 row** |
+
+You will see the consequence in section 8. We are reporting this rather than quietly re-running with
+a better setting, because it is our mistake and it affects how the results should be read.
+
+**After all that: 446,641 connections with 68 measurements each.**
 
 ## 4. How we tested honestly
 
@@ -94,8 +122,8 @@ We split the data into three piles:
 
 | Pile | Size | What it is for |
 |---|---|---|
-| **Training** (60%) | 267,987 | The model learns from this. It sees the answers. |
-| **Validation** (20%) | 89,329 | We try different settings and pick the best using this. |
+| **Training** (60%) | 267,984 | The model learns from this. It sees the answers. |
+| **Validation** (20%) | 89,328 | We try different settings and pick the best using this. |
 | **Test** (20%) | 89,329 | Locked in a drawer. Opened once, at the very end. |
 
 Think of it as revision, mock exam, and real exam.
@@ -141,24 +169,24 @@ Five numbers get reported. Here is what each one is really asking:
 
 | Model | Accuracy | macro-F1 | Recall | ROC-AUC | FAR |
 |---|---|---|---|---|---|
-| Logistic Regression | 0.9721 | 0.9419 | 0.8330 | 0.9915 | 0.0032 |
+| Logistic Regression | 0.9721 | 0.9418 | 0.8325 | 0.9915 | 0.0032 |
 | **Random Forest** | **0.9984** | **0.9968** | **0.9923** | **0.9999** | **0.0006** |
-| Neural network (MLP) | 0.9949 | 0.9901 | 0.9814 | 0.9994 | 0.0027 |
+| Neural network (MLP) | 0.9948 | 0.9898 | 0.9825 | 0.9995 | 0.0030 |
 
 Percentages are hard to feel. Here are the same results as **counts of actual connections**:
 
 | Model | Attacks caught | **Attacks missed** | False alarms |
 |---|---|---|---|
-| Logistic Regression | 11,213 | **2,248** | 245 |
+| Logistic Regression | 11,206 | **2,255** | 239 |
 | **Random Forest** | **13,357** | **104** | **42** |
-| Neural network (MLP) | 13,210 | 251 | 202 |
+| Neural network (MLP) | 13,225 | 236 | 230 |
 
 ### The one thing to take away from this report
 
 Look at Logistic Regression. **97.2% accuracy.** That sounds like a good detector. Most people would
 be pleased with it.
 
-It missed **2,248 attacks. More than one in six walked straight past it.**
+It missed **2,255 attacks. More than one in six walked straight past it.**
 
 Random Forest missed 104.
 
@@ -167,10 +195,10 @@ let through. Accuracy hid that difference completely.
 
 ### Why accuracy lies here
 
-Remember that 80.3% of connections are normal. Imagine a program that does not look at its input at
-all and simply answers "normal" every single time.
+Remember that around 85% of connections are normal after cleaning. Imagine a program that does not
+look at its input at all and simply answers "normal" every single time.
 
-**It scores 80.3% accuracy. It catches zero attacks.** It is completely worthless, and on paper it
+**It scores about 85% accuracy. It catches zero attacks.** It is completely worthless, and on paper it
 looks like a respectable B.
 
 That is why the lab bans arguing from accuracy alone, and why **macro-F1** is our headline number
@@ -180,14 +208,26 @@ the other, so its average collapses and the fraud is exposed immediately.
 
 ### Why the false alarm rate is not enough either
 
-Here is the subtlety that makes this run interesting.
+Here is the part that makes this run genuinely interesting.
 
-Logistic Regression's false alarm rate (0.0032) is **low** - it looks well-behaved. But part of the
-reason it rarely cries wolf is that it rarely says "attack" at all. On data that is 80% innocent,
-staying quiet is an easy way to look calm while intruders walk in.
+Compare Logistic Regression and the neural network on false alarms:
 
-**So FAR and recall have to be read together.** A model can cheat either one on its own. macro-F1 is
-the number that catches both kinds of cheating at once.
+| | False alarms | Attacks missed |
+|---|---|---|
+| Logistic Regression | 239 | **2,255** |
+| Neural network | 230 | **236** |
+
+**They raise almost exactly the same number of false alarms** - 239 against 230, nine apart out of
+75,868 innocent connections. If false alarms were all you looked at, you would call them equal.
+
+They are nowhere near equal. Logistic Regression lets **nearly ten times as many attacks through**.
+
+How can a worse detector look this calm? Because on data that is 85% innocent, a model can keep its
+false-alarm count low simply by rarely saying "attack" at all. Staying quiet looks well-behaved and
+lets intruders walk in.
+
+**So false alarms and catch rate have to be read together.** Either one on its own can be gamed.
+macro-F1 is the number that catches both kinds of cheating at once, which is why it is our headline.
 
 ## 7. The experiment: does rescaling matter?
 
@@ -202,8 +242,8 @@ advantage.
 
 | Model | macro-F1 raw → rescaled |
 |---|---|
-| Logistic Regression | 0.9033 → **0.9419** |
-| Neural network (MLP) | 0.9425 → **0.9901** |
+| Logistic Regression | 0.9075 → **0.9418** |
+| Neural network (MLP) | 0.9446 → **0.9898** |
 | Random Forest | 0.9968 → 0.9968 |
 
 The first two improve clearly. **Random Forest does not budge.**
@@ -220,63 +260,86 @@ not just infer it from the scores.
 
 ## 8. Naming the attack
 
-Now the harder job: not "is this an attack" but "*which* attack". The number below is the share of
-that attack the model correctly identified.
+Now the harder job: not "is this an attack" but "*which* attack".
+
+**Start with the headline.** On the yes/no job the model scored **0.9968**. On naming the attack it
+scored **0.7761**.
+
+Same model, same data, same day. Ask it "is this bad?" and it looks close to flawless. Ask it "what
+is this?" and it is distinctly mediocre. That gap is the most useful thing in this whole report, and
+you would never see it if you only built the alarm.
+
+The reason the second number is so much lower is that it gives every attack type **equal weight**. It
+does not let the model coast on the 85% of traffic that is ordinary browsing.
+
+Here is what it caught, with the number of exam questions it was asked about each:
 
 **Caught almost perfectly:**
 
-| Attack | Caught |
-|---|---|
-| Normal traffic | 100% |
-| DDoS | 100% |
-| FTP password guessing | 100% |
-| Heartbleed | 100% |
-| DoS Hulk | 99% |
-| DoS GoldenEye, DoS slowloris | 98% |
-| DoS Slowhttptest | 97% |
+| Attack | Caught | Exam rows |
+|---|---|---|
+| Normal traffic | 100% | 75,868 |
+| DDoS | 100% | 5,121 |
+| FTP password guessing | 100% | 237 |
+| DoS Hulk | 99% | 6,914 |
+| DoS GoldenEye | 98% | 412 |
+| DoS slowloris | 98% | 215 |
+| DoS Slowhttptest | 97% | 209 |
 
 These are floods and password-guessing attacks. They are **loud**. Hammering a server looks nothing
 like reading email, so they are easy to spot.
 
 **Caught most of the time:**
 
-| Attack | Caught |
-|---|---|
-| SSH password guessing | 93% |
-| Port scanning | 91% |
+| Attack | Caught | Exam rows |
+|---|---|---|
+| SSH password guessing | 93% | 129 |
+| Port scanning | 91% | 78 |
 
 **Struggled:**
 
-| Attack | Caught | What went wrong |
-|---|---|---|
-| Web brute force | 75% | Confused with XSS |
-| Botnet | 65% | A third labelled as normal traffic |
-| Web XSS | 35% | Mostly confused with web brute force |
+| Attack | Caught | Exam rows | What went wrong |
+|---|---|---|---|
+| Web brute force | 75% | 59 | Confused with XSS |
+| Botnet | 65% | 57 | A third labelled as normal traffic |
+| Web XSS | 35% | 26 | Mostly confused with web brute force |
 
 The web attacks get mistaken **for each other**. Both are attacks delivered over ordinary web
 traffic, and at the level of "how big were the packets, how long did it take" they look nearly
 identical. Telling them apart would need reading the actual contents of the messages, which this
-dataset does not include. That is a limit of the *information available*, not of the model.
+dataset does not include. That is a limit of the *information available*, not of the model. No amount
+of tuning fixes it.
 
 The botnet result makes sense too. A botnet's whole design goal is to look like normal traffic while
 it talks to its controller. It is supposed to be hard.
 
-**Completely missed:**
+**Scored zero - but read the exam column:**
 
-| Attack | Caught |
-|---|---|
-| Infiltration | **0%** |
-| SQL Injection | **0%** |
+| Attack | Caught | Exam rows |
+|---|---|---|
+| Infiltration | **0%** | **1** |
+| SQL injection | **0%** | **1** |
 
-Every single example of both was labelled "normal traffic". These are the two rarest attacks in the
-data - 36 and 21 examples out of nearly three million. The model saw almost none during training and
-effectively learned to ignore them.
+Both were labelled "normal traffic". But look at how many questions the model was asked: **one each.**
+
+This is the mistake from section 3 showing up. Our rule protected classes with fewer than 20 rows;
+these two had about 35 and about 20, so they slipped through and were cut to a fifth.
+
+So we have to say two things at once, and both are true:
+
+- The model **did** get both wrong. It called them normal traffic.
+- One question is nowhere near enough to conclude anything. It could be genuine blindness, or it
+  could be bad luck on a single row.
+
+**What we can say confidently is that we cannot tell.** With a better threshold each would have had
+about 7 and 4 exam rows - still too few. The honest conclusion is that this dataset does not contain
+enough examples of these two attacks to judge a detector on them at all, and any report claiming
+otherwise is overreaching.
 
 **We are reporting this rather than hiding it, and it is the most valuable finding here.** The yes/no
 detector looked nearly flawless, because these attacks are a rounding error among 13,461. Only by
-asking the model to *name* the attack did we discover that two attack types are completely invisible
-to it. A detector with a blind spot you know about is far better than one with a blind spot you do
-not.
+asking the model to *name* the attack did we discover both a real weakness and a flaw in our own
+method.
 
 ## 9. What we would actually deploy, and why
 
@@ -289,12 +352,12 @@ day:
 | Model | False alarms per day |
 |---|---|
 | **Random Forest** | **~554** |
-| Neural network | ~2,663 |
-| Logistic Regression | ~3,229 |
+| Neural network | ~3,032 |
+| Logistic Regression | ~3,150 |
 
 554 alerts a day is a real workload, but a small team can get through it.
 
-3,229 is **one every 27 seconds, all day and all night**. Nobody reads that. Within a fortnight the
+3,150 is **one every 27 seconds, all day and all night**. Nobody reads that. Within a fortnight the
 alerts are muted or the system is switched off - and now you are worse off than having no detector,
 because everyone believes the network is being watched when it is not.
 
@@ -305,27 +368,30 @@ of accuracy points apart can be a working security tool and an ignored nuisance.
 
 Being straight about limits is part of the job.
 
-- **Two attacks are completely invisible to it** - Infiltration and SQL injection. It would never
-  warn you about either.
-- **The rarest attacks rest on a handful of examples.** Heartbleed scored 100%, but on so few test
-  cases that the number proves nothing.
+- **We set our rare-class threshold one row too low.** SQL injection and Infiltration should have
+  been protected from sampling and were not, so each ended up with a single exam row. That is our
+  error, and we did not re-run to cover it up.
+- **Two attacks scored zero, on one question each.** They may well be invisible to the detector, but
+  the evidence is far too thin to state that as a fact.
+- **Heartbleed scored 100% on two exam rows**, which proves nothing either.
+- **Removing duplicates deleted 99% of the port-scan rows.** We think that is correct - they were
+  genuine copies - but it means our port-scan result rests on 78 exam rows, not thousands.
 - **This was a laboratory network.** Researchers built it, scripted the attacks and ran them on a
   timetable. Real traffic is messier and real attackers are less predictable.
-- **We used a fifth of the data**, to keep training to minutes rather than hours.
+- **We used a fifth of the data** - 446,641 rows out of about 2.23 million after cleaning - to keep training to minutes rather than hours.
 - **We only see traffic shapes, never contents.** That is why two web attacks are inseparable here.
-- **The scores are suspiciously high, and we should say so.** Nearly 18% of this data is high-volume
-  floods that look nothing like normal browsing. That makes the yes/no job genuinely easy. We are
-  confident there is no cheating - the exam set was sealed before training, opened once, and
-  duplicates were removed first - but an easy exam produces high marks.
+- **The yes/no scores are suspiciously high, and we should say so.** A large share of this data is
+  high-volume floods that look nothing like normal browsing, which makes the yes/no job genuinely
+  easy. We are confident there is no cheating - the exam set was sealed before training, opened once,
+  and duplicates were removed first - but an easy exam produces high marks. The naming job, at
+  0.7761, is the more honest measure of what this detector can do.
 - **This is 2017 traffic.** Attacks from eight years ago may not resemble what is used today.
 
 ## 11. Who did what
 
-> **[FILL IN BEFORE SUBMITTING.]**
->
-> [NAME A] handled the data side - loading, cleaning, splitting. [NAME B] handled the models and the
-> scoring. [NAME A] wrote sections 1-5, [NAME B] wrote sections 6-10. Both of us ran the whole thing
-> end to end and got matching numbers.
+Kirill Silchenko handled the data side - loading, cleaning and splitting. Stefanos Ntentopoulos
+handled the models and the scoring. Kirill wrote sections 1-5; Stefanos wrote sections 6-10. Both of
+us ran the whole thing end to end and got matching numbers.
 
 ## 12. Did we use AI?
 

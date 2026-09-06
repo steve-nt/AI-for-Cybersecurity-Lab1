@@ -3,7 +3,7 @@
 **Dataset:** CICIDS2017, `Wednesday-workingHours.pcap_ISCX.csv`
 **Random seed:** 42 (set in `src/config.py`)
 **Code:** `src/` + `run_all.py` - see `README.md` for how to run it
-**Authors:** [NAME A] and [NAME B]
+**Authors:** Kirill Silchenko (kirsil-5@student.ltu.se) and Stefanos Ntentopoulos (stente-5@student.ltu.se)
 
 ---
 
@@ -251,13 +251,11 @@ local run.
 
 ## 5. Who did what
 
-> **[FILL THIS IN BEFORE SUBMITTING - do not leave the placeholders.]**
->
-> [NAME A] owned the data pipeline: `config.py`, `explore.py`, `clean.py`, `prepare.py`, the
-> cleaning-numbers record, and the README. [NAME B] owned the modelling and evaluation:
-> `metrics.py`, `train_binary.py`, `ablation.py`, `multiclass.py`, `compare.py` and `run_all.py`.
-> [NAME A] wrote report sections 1-2; [NAME B] wrote sections 3-4. Both ran the full pipeline
-> independently and confirmed matching numbers.
+Kirill Silchenko owned the data pipeline: `config.py`, `explore.py`, `clean.py` and `prepare.py`,
+plus the cleaning-numbers record and the README. Stefanos Ntentopoulos owned the modelling and
+evaluation: `metrics.py`, `train_binary.py`, `ablation.py`, `multiclass.py`, `compare.py` and
+`run_all.py`. Kirill wrote report sections 1-2; Stefanos wrote sections 3-4. Both of us ran the full
+pipeline independently and confirmed the numbers matched.
 
 ## 6. Use of AI assistance
 
